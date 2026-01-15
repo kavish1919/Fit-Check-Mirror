@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIT CHECK MIRROR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/mobile.css?v=26" media="(max-width: 600px)">
+    <style>
+        :root {
+            --paper-white: #fdfbf7;
+            --ink-black: #2c2c2c;
+            --sticky-yellow: #fff740;
+            --highlight-blue: #a8dadc;
+        }
+
+        body {
+            background: url('/static/background_image.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--ink-black);
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            /* Fallback */
+            height: 100dvh;
+            /* Mobile Browser Fix */
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px #fff;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 3px solid var(--ink-black);
+            transform: rotate(-2deg);
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            background: var(--paper-white);
+            border: 4px solid var(--ink-black);
+            box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        /* Mock Paper Lines */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 40px;
+            height: 100%;
+            width: 2px;
+            background: #ff9999;
+            z-index: 0;
+        }
+
+        .video-wrapper {
+            position: relative;
+            z-index: 1;
+            border: 3px solid var(--ink-black);
+            background: #000 url('/static/mirror_image.png') no-repeat center center;
+            background-size: cover;
+            width: 100%;
+            height: 500px;
+            /* Fixed Constant Height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            /* Side by side */
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.4);
+            /* Slight transparency to see mirror */
+            z-index: 15;
+            gap: 40px;
+        }
+
+        .start-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 4px solid var(--ink-black);
+            width: 180px;
+            height: 180px;
+            /* Square/Box shape */
+            font-size: 1.5rem;
+            font-family: 'Patrick Hand', cursive;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 10px 10px 0px var(--sticky-yellow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .start-btn:hover {
+            transform: translate(-3px, -3px) rotate(2deg);
+            box-shadow: 15px 15px 0px var(--sticky-yellow);
+            background: #fff;
+        }
+
+        .start-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 5px 5px 0px var(--sticky-yellow);
+        }
+
+        /* Upload Preview Image */
+        #previewImage {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            /* Fit inside the fixed mirror box */
+            display: none;
+            transform: scaleX(1);
+            /* No mirror for uploads */
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transform: scaleX(-1);
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: var(--sticky-yellow);
+            box-shadow: 0 0 10px var(--sticky-yellow);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .scanning .scan-line {
+            opacity: 1;
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0%;
+            }
+
+            50% {
+                top: 100%;
+            }
+
+            100% {
+                top: 0%;
+            }
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Sticky Note Buttons */
+        button,
+        select {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: 3px solid var(--ink-black);
+            background: var(--sticky-yellow);
+            color: var(--ink-black);
+            padding: 10px 20px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+            text-transform: uppercase;
+        }
+
+        /* Specific Select Styling for Custom Arrow */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%232c2c2c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 15px top 50%;
+            background-size: 16px auto;
+            padding-right: 40px;
+        }
+
+        button:hover,
+        select:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .vibe-select {
+            background-color: #fff;
+            /* Ensure white background for contrast */
+            transform: rotate(-1deg);
+        }
+
+        #timerSelector {
+            width: auto;
+            min-width: 160px;
+            /* Force minimum width */
+            text-align: center;
+            box-sizing: border-box;
+            transform: rotate(2deg);
+            flex-shrink: 0;
+            /* Prevent shrinking */
+        }
+
+        #scanBtn {
+            background: #ff7eb3;
+            /* Pop of color */
+            color: white;
+            text-shadow: 1px 1px 0 #000;
+            transform: rotate(1deg);
+        }
+
+        /* Overlay Styles Adapted */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .score-label {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--ink-black);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            text-decoration: underline;
+            text-decoration-style: wavy;
+            text-decoration-color: var(--highlight-blue);
+            transform: rotate(-2deg);
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border: 4px solid var(--ink-black);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            background: var(--sticky-yellow);
+            box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .roast-text {
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 10px;
+            max-width: 80%;
+            font-weight: bold;
+            color: var(--ink-black);
+            text-shadow: none;
+            max-height: 120px;
+            /* Safety cap restoration */
+            overflow-y: auto;
+        }
+
+        .tips-container {
+            border: 3px dashed var(--ink-black);
+            background: #e0f7fa;
+            padding: 15px;
+            margin: 20px 0;
+            max-width: 80%;
+            transform: rotate(-1deg);
+            box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.1);
+            max-height: 100px;
+            /* Safety cap restoration */
+            overflow-y: auto;
+        }
+
+        .tips-title {
+            color: #007bb5;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-decoration: underline;
+        }
+
+        .tips-text {
+            color: var(--ink-black);
+            font-size: 1.2rem;
+        }
+
+        .countdown-overlay {
+            font-size: 8rem;
+            color: var(--ink-black);
+            text-shadow: 4px 4px 0px #fff;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            display: none;
+        }
+
+        .loading-text {
+            font-size: 2rem;
+            color: var(--sticky-yellow);
+            text-shadow: 2px 2px 0px #000;
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 21;
+            display: none;
+            font-weight: bold;
+        }
+
+        .stable-msg {
+            font-size: 1.5rem;
+            color: #d32f2f;
+            background: #fff;
+            border: 3px solid #d32f2f;
+            padding: 10px 20px;
+            font-weight: bold;
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 21;
+            display: none;
+            box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.2);
+            transform: translate(-50%, -50%) rotate(-2deg);
+        }
+
+        /* Hide raw canvas */
+        #canvas {
+            display: none;
+        }
+
+        .comic-alert {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            /* Dark overlay */
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .comic-alert-box {
+            background: #fff;
+            border: 4px solid var(--ink-black);
+            padding: 30px;
+            max-width: 400px;
+            text-align: center;
+            transform: rotate(-2deg);
+            box-shadow: 15px 15px 0px var(--sticky-yellow);
+            position: relative;
+        }
+
+        .comic-alert-title {
+            font-size: 2rem;
+            color: #d32f2f;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        .comic-alert-text {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .comic-btn {
+            background: var(--highlight-blue);
+            border: 3px solid var(--ink-black);
+            padding: 10px 25px;
+            font-size: 1.2rem;
+            font-family: 'Patrick Hand', cursive;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
+        }
+
+        .comic-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .comic-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Custom Dropdown Base Styles (Desktop & Mobile Base) */
+        .custom-vibe-wrapper {
+            position: relative;
+            width: 300px;
+            /* Desktop width */
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .custom-vibe-trigger {
+            background: #fff;
+            border: 3px solid var(--ink-black);
+            padding: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+        }
+
+        .custom-vibe-options {
+            position: absolute;
+            top: 100%;
+            /* Downwards on desktop */
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border: 3px solid var(--ink-black);
+            display: none;
+            /* Hidden */
+            flex-direction: column;
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .custom-vibe-options.show {
+            display: flex;
+        }
+
+        .custom-option {
+            padding: 10px;
+            border-bottom: 2px solid #eee;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .custom-option:hover {
+            background: #f0f0f0;
+        }
+
+        /* Desktop Fix: Unwrap the groups so grid/flex works as before */
+        .res-header,
+        .res-body {
+            display: contents;
+        }
+
+        /* Responsive Visibility Toggles */
+        /* @media (min-width: 601px) {
+            .mobile-only {
+                display: none !important;
+            }
+
+            .desktop-only {
+                display: block !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .mobile-only {
+                display: flex !important;
+            }
+
+            .desktop-only {
+                display: none !important;
+            }
+        } */
+
+        /* Wrapper for scaling UI content independently of background */
+        .ui-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        @media (min-width: 601px) {
+            .ui-wrapper {
+                zoom: 0.8;
+                /* Scale down to 80% for laptops */
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="ui-wrapper">
+        <h1>FIT CHECK MIRROR</h1>
+
+        <div class="container">
+            <div class="video-wrapper" id="camera-container">
+                <!-- Start Screen Overlay -->
+                <div id="startScreen" class="start-screen">
+                    <button class="start-btn" onclick="triggerUpload()">
+                        <span style="font-size: 3rem;">📁</span>
+                        UPLOAD PIC
+                    </button>
+                    <button class="start-btn" onclick="initCamera()">
+                        <span style="font-size: 3rem;">📷</span>
+                        USE MIRROR
+                    </button>
+                </div>
+
+                <video id="video" autoplay playsinline></video>
+                <img id="previewImage" alt="Uploaded Outfit">
+                <input type="file" id="fileInput" accept="image/*" hidden onchange="handleFileUpload(this)">
+
+                <div class="scan-line" id="scanLine"></div>
+                <div class="countdown-overlay" id="countdownOverlay">3</div>
+
+                <div class="loading-text" id="loadingText">ANALYZING DRIP...</div>
+                <div class="stable-msg" id="stableMsg">⚠ HOLD STILL FOR SCAN ⚠</div>
+
+                <div class="overlay" id="resultOverlay">
+                    <div class="res-header">
+                        <div class="score-label">✨ DRIP SCORE ✨</div>
+                        <div class="score-circle" id="score">0</div>
+                        <div style="font-size: 2rem; margin-bottom: 10px;" id="emojiDisplay"></div>
+                    </div>
+
+                    <div class="res-body">
+                        <div class="roast-text" id="roast">"Analyzing..."</div>
+
+                        <div class="tips-container">
+                            <div class="tips-title">💡 STYLE AUDIT:</div>
+                            <div class="tips-text" id="tipsText">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="display:flex; gap:10px; width:100%; justify-content:center;">
+                        <button onclick="resetApp()" style="background:var(--highlight-blue); flex:1;">TRY
+                            AGAIN</button>
+                        <button onclick="generateShareCard()" style="background:var(--sticky-yellow); flex:1;">SHARE
+                            DRIP
+                            📤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <!-- Native Select (Restored for All Devices) -->
+            <select id="vibeSelector" class="vibe-select">
+                <option value="" disabled selected>✨ SELECT YOUR VIBE ✨</option>
+                <option value="Casual Wear">🧢 Daily Edit (Casual)</option>
+                <option value="Office Wear">💼 Boardroom (Formal)</option>
+                <option value="Party Wear">🥂 Evening Edit (Party)</option>
+                <option value="Street Style">🛹 Urban Pulse (Street)</option>
+                <option value="Traditional Wear">👘 Heritage (Traditional)</option>
+                <option value="Sportswear">🏃 In Motion (Sports)</option>
+            </select>
+
+            <select id="timerSelector" class="vibe-select" style="width: 80px;">
+                <option value="3" selected>3s</option>
+                <option value="5">5s</option>
+                <option value="10">10s</option>
+            </select>
+
+            <button id="scanBtn" onclick="scanOutfit()">SCAN OUTFIT</button>
+        </div>
+    </div> <!-- End of ui-wrapper -->
+
+
+    <!-- Custom Alert Modal -->
+    <div id="customAlert" class="comic-alert">
+        <div class="comic-alert-box">
+            <div class="comic-alert-title">⚠️ WAIT A SEC! ⚠️</div>
+            <div class="comic-alert-text">TELL THE MIRROR WHAT YOU'RE WEARING SO WE CAN JUDGE YOU FAIRLY!</div>
+            <button class="comic-btn" onclick="closeAlert()">OK, MY BAD</button>
+        </div>
+    </div>
+
+    <!-- Hidden Canvas for Capture -->
+    <canvas id="canvas" style="display:none;"></canvas>
+    <script src="/static/share.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const scanBtn = document.getElementById('scanBtn');
+        const scanLine = document.getElementById('scanLine');
+        const resultOverlay = document.getElementById('resultOverlay');
+        const scoreEl = document.getElementById('score');
+        const roastEl = document.getElementById('roast');
+        const loadingText = document.getElementById('loadingText');
+        const videoContainer = document.getElementById('camera-container');
+        const customAlert = document.getElementById('customAlert');
+        const startScreen = document.getElementById('startScreen');
+        const previewImage = document.getElementById('previewImage');
+        const fileInput = document.getElementById('fileInput');
+
+        let uploadedFile = null;
+
+        // Camera Initialization (Manual)
+        async function initCamera() {
+            startScreen.style.display = 'none';
+            video.style.display = 'block';
+            previewImage.style.display = 'none';
+            uploadedFile = null; // Clear any old upload
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Camera Error:", err);
+                alert("Could not access camera: " + err.name);
+                resetApp(); // Go back to start
+            }
+        }
+
+        // Upload Logic
+        function triggerUpload() {
+            fileInput.click();
+        }
+
+        function handleFileUpload(input) {
+            if (input.files && input.files[0]) {
+                uploadedFile = input.files[0];
+
+                // Show Image
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    startScreen.style.display = 'none';
+                    video.style.display = 'none'; // Hide video
+                    previewImage.style.display = 'block'; // Show image
+
+                    // Do NOT auto-scan. User must click "SCAN OUTFIT" manually.
+                }
+                reader.readAsDataURL(uploadedFile);
+            }
+        }
+
+        function closeAlert() {
+            customAlert.style.display = 'none';
+            const vibeSelector = document.getElementById('vibeSelector');
+            vibeSelector.focus();
+            try {
+                vibeSelector.showPicker();
+            } catch (e) {
+                vibeSelector.click();
+            }
+        }
+
+        // Custom Dropdown Logic (Removed)
+
+        // Close dropdown when clicking outside (Removed)
+
+        function scanOutfit() {
+            // Check native selector
+            const vibeSelector = document.getElementById('vibeSelector');
+            const selectedVibe = vibeSelector.value;
+
+            if (!selectedVibe) {
+                // Show Alert if empty
+                customAlert.style.display = 'flex';
+                return;
+            }
+
+            // Proceed with scan...
+            const timerVal = document.getElementById('timerSelector').value;
+            const countdownOverlay = document.getElementById('countdownOverlay');
+
+            // If we have an uploaded file, we shouldn't be here mostly (as it auto-scans), 
+            // but if user manually triggers 'Scan' in upload mode (maybe retry?), handle it.
+            if (uploadedFile) {
+                performScan();
+                return;
+            }
+
+            // Normal Camera Scan Flow
+            scanBtn.disabled = true;
+
+            // Start Countdown
+            let timeLeft = parseInt(timerVal);
+            countdownOverlay.innerText = timeLeft;
+            countdownOverlay.style.display = 'block';
+
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    countdownOverlay.innerText = timeLeft;
+                } else {
+                    clearInterval(timerInterval);
+                    countdownOverlay.style.display = 'none';
+                    performScan();
+                }
+            }, 1000);
+        }
+
+        function performScan() {
+            videoContainer.classList.add('scanning');
+            loadingText.style.display = 'block';
+
+            // Only show "Hold Still" if using Camera (no uploaded file)
+            if (!uploadedFile) {
+                document.getElementById('stableMsg').style.display = 'block';
+            }
+
+            const formData = new FormData();
+            const vibe = document.getElementById('vibeSelector').value;
+            formData.append('category', vibe);
+
+            if (uploadedFile) {
+                // Use the uploaded file directly
+                formData.append('image', uploadedFile);
+                sendRequest(formData);
+            } else {
+                // Capture from Canvas
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(blob => {
+                    formData.append('image', blob, 'capture.jpg');
+                    sendRequest(formData);
+                }, 'image/jpeg');
+            }
+        }
+
+        function sendRequest(formData) {
+            fetch('/roast', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showResult(data);
+                    } else {
+                        alert("Error: " + data.message);
+                        resetApp();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Network Error");
+                    resetApp();
+                });
+        }
+
+        function showResult(data) {
+            videoContainer.classList.remove('scanning');
+            loadingText.style.display = 'none';
+            document.getElementById('stableMsg').style.display = 'none';
+
+            const emojiStr = data.emoji || "";
+            document.getElementById('emojiDisplay').innerText = emojiStr;
+
+            animateScore(data.score);
+            roastEl.innerText = data.roast;
+            document.getElementById('tipsText').innerText = data.tips || "No specific advice.";
+
+            resultOverlay.classList.add('visible');
+
+            if (data.audio) {
+                const audio = new Audio("data:audio/mp3;base64," + data.audio);
+                audio.play().catch(e => console.log("Audio play failed:", e));
+            }
+        }
+
+        function animateScore(target) {
+            let current = 0;
+            scoreEl.innerText = "0";
+            const duration = 1500;
+            const stepTime = 30;
+            const steps = duration / stepTime;
+            const increment = target / steps;
+
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                scoreEl.innerText = Math.floor(current);
+            }, stepTime);
+        }
+
+        function resetApp() {
+            resultOverlay.classList.remove('visible');
+            scanBtn.disabled = false;
+            videoContainer.classList.remove('scanning');
+            loadingText.style.display = 'none';
+            document.getElementById('stableMsg').style.display = 'none';
+            document.getElementById('tipsText').innerText = "Loading...";
+
+            // Full Reset to Start Screen
+            startScreen.style.display = 'flex';
+            video.style.display = 'none'; // Hide video
+            previewImage.style.display = 'none'; // Hide preview
+            uploadedFile = null;
+
+            // Optional: Stop Camera Stream to save resources
+            if (video.srcObject) {
+                const tracks = video.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+    </script>
+
+</body>
+
+</html>
