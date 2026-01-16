@@ -58,6 +58,29 @@
             }
         }
 
+        /* Base Button Styles (matching main page) */
+        button {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: 3px solid black;
+            padding: 8px 16px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+        }
+
         @keyframes slideUpCard {
             from {
                 transform: translateY(50px);
