@@ -124,7 +124,42 @@ Get your Groq API key: [console.groq.com](https://console.groq.com)
 | **PythonAnywhere** | Free forever | ✅ Yes | ⭐⭐⭐⭐⭐ | Personal projects |
 | **Railway** | $5 credit/mo | ✅ Yes | ⭐⭐⭐⭐ | Testing/dev |
 | **Fly.io** | Free tier | ✅ Yes | ⭐⭐⭐ | Production apps |
-| **Render** | Free | ❌ Sleeps | ⭐⭐⭐⭐ | Not recommended |
+| **Render** | Free | ⚠️ Sleeps | ⭐⭐⭐⭐ | Quick deploys |
+
+---
+
+## 🎨 Deploy to Render
+
+### Step 1: Connect GitHub
+1. Go to [render.com](https://render.com) and sign up
+2. Click **New** → **Web Service**
+3. Connect your GitHub and select `Fit-Check-Mirror`
+
+### Step 2: Configure Service
+| Setting | Value |
+|---------|-------|
+| Name | `fit-check-mirror` |
+| Branch | `main` |
+| Runtime | `Python 3` |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `gunicorn app:app` |
+
+### Step 3: Add Environment Variables
+In the **Environment** section, add:
+
+| Key | Value |
+|-----|-------|
+| `GROQ_API_KEY` | Your Groq API key |
+| `FIREBASE_PROJECT_ID` | From firebase_credentials.json |
+| `FIREBASE_PRIVATE_KEY` | Full private key (with `-----BEGIN...`) |
+| `FIREBASE_CLIENT_EMAIL` | From firebase_credentials.json |
+
+### Step 4: Deploy
+Click **Create Web Service** and wait ~3-5 mins
+
+Your app: `https://fit-check-mirror.onrender.com`
+
+> ⚠️ Free tier sleeps after 15 mins inactivity
 
 ---
 
