@@ -5,8 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIT CHECK MIRROR</title>
+    <link rel="icon" type="image/x-icon" href="/static/fitcheckmirror_icon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/mobile.css?v=29" media="(max-width: 600px)">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         :root {
             --paper-white: #fdfbf7;
@@ -551,17 +556,94 @@
             .mobile-popup-overlay {
                 display: none !important;
             }
+
+            /* Hide Camera Switch on Desktop */
+            #cameraSwitchBtn {
+                display: none !important;
+            }
+        }
+
+        /* Camera Switch Button */
+        #cameraSwitchBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.8);
+            border: 3px solid var(--ink-black);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: none;
+            /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+
+<body style="opacity: 0; animation: fadeInPage 0.5s forwards;">
+    <!-- Page Fade In Animation -->
+    <style>
+        @keyframes fadeInPage {
+            to {
+                opacity: 1;
+            }
         }
     </style>
 
-</head>
+    <!-- Make the login button feel bigger and more clickable -->
+    <style>
+        #loginBtn:hover {
+            transform: scale(1.05);
+        }
 
-<body>
+        #loginBtn:active {
+            transform: scale(0.95);
+        }
+    </style>
+
+    <div class="user-controls" id="userControls"
+        style="position: fixed; top: 10px; right: 10px; z-index: 1000; font-family: 'Patrick Hand', cursive;">
+        <!-- Added width/height and cursor to ensure full clickability -->
+        <button id="loginBtn" class="comic-btn" onclick="signInWithGoogle()"
+            style="display: none; font-size: 1rem; padding: 10px 20px; cursor: pointer; min-width: 120px;">
+            <span class="desktop-text">G SIGN IN</span>
+            <span class="mobile-icon" style="display:none;">G</span>
+            <span class="mobile-text" style="display:none;">sign in</span>
+        </button>
+        <div id="userProfile"
+            style="display: none; align-items: center; gap: 10px; background: white; padding: 5px 15px 5px 5px; border: 3px solid black; box-shadow: 4px 4px 0px black; cursor: pointer;"
+            onclick="document.getElementById('profileLink').click()">
+
+            <!-- Desktop View -->
+            <div class="desktop-profile" style="display: flex; align-items: center; gap: 10px;">
+                <img id="userAvatar" src=""
+                    style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid black;">
+                <a id="profileLink" href="#" style="text-decoration: none; color: black; font-weight: bold;">MY
+                    PROFILE</a>
+            </div>
+
+            <!-- Mobile View (Compact) -->
+            <div class="mobile-profile-icon"
+                style="display: none; flex-direction: column; align-items: center; justify-content: center; line-height: 1;">
+                <span style="font-size: 1.5rem;">👤</span>
+                <span style="font-size: 0.6rem; font-weight: bold; text-transform: uppercase;">YOU</span>
+            </div>
+        </div>
+    </div>
+
     <div class="ui-wrapper">
         <h1>FIT CHECK MIRROR</h1>
 
         <div class="container">
             <div class="video-wrapper" id="camera-container">
+                <!-- Camera Switch Button (Mobile Only) -->
+                <button id="cameraSwitchBtn" onclick="switchCamera()">🔄</button>
+
                 <!-- Start Screen Overlay -->
                 <div id="startScreen" class="start-screen">
                     <button class="start-btn" onclick="triggerUpload()">
@@ -600,12 +682,14 @@
                         </div>
                     </div>
 
-                    <div class="row" style="display:flex; gap:10px; width:100%; justify-content:center;">
-                        <button onclick="resetApp()" style="background:var(--highlight-blue); flex:1;">TRY
-                            AGAIN</button>
-                        <button onclick="generateShareCard()" style="background:var(--sticky-yellow); flex:1;">SHARE
-                            DRIP
-                            📤</button>
+                    <div class="row"
+                        style="display:flex; gap:10px; width:100%; justify-content:center; flex-wrap: wrap;">
+                        <button class="comic-btn" onclick="resetApp()"
+                            style="background:var(--highlight-blue); flex:1; min-width: 100px;">TRY AGAIN 🔄</button>
+                        <button class="comic-btn" onclick="generateShareCard()"
+                            style="background:var(--sticky-yellow); flex:1; min-width: 100px;">SHARE 📤</button>
+                        <button id="saveScoreBtn" class="comic-btn" onclick="saveScore()"
+                            style="background:#4CD964; flex:1; min-width: 100px; display: none;">SAVE DRIP �</button>
                     </div>
                 </div>
             </div>
@@ -681,7 +765,24 @@
         <div class="comic-alert-box">
             <div class="comic-alert-title">⚠️ WAIT A SEC! ⚠️</div>
             <div class="comic-alert-text">TELL THE MIRROR WHAT YOU'RE WEARING SO WE CAN JUDGE YOU FAIRLY!</div>
-            <button class="comic-btn" onclick="closeAlert()">OK, MY BAD</button>
+            <div style="display: flex; gap: 10px; width: 100%; justify-content: center;">
+                <button class="comic-btn" id="mainAlertBtn" onclick="closeAlert()">OK, MY BAD</button>
+                <button class="comic-btn" id="secondaryAlertBtn"
+                    style="display:none; background: #FF9500; color: white;">SURE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Username Setup Modal -->
+    <div id="usernameModal" class="comic-alert" style="display:none; z-index:2000;">
+        <div class="comic-alert-box">
+            <div class="comic-alert-title">WHO DIS? 👀</div>
+            <div class="comic-alert-text">Pick a unique username for your Drip Profile!</div>
+            <input type="text" id="usernameInput" placeholder="drip_king_99"
+                style="font-size: 1.5rem; padding: 10px; border: 3px solid black; width: 80%; margin-bottom: 20px; font-family: inherit; text-transform: lowercase;">
+            <div id="usernameError" style="color: red; font-weight: bold; display: none; margin-bottom: 10px;">Username
+                taken!</div>
+            <button class="comic-btn" onclick="submitUsername()">CLAIM IT</button>
         </div>
     </div>
 
@@ -689,6 +790,119 @@
     <canvas id="canvas" style="display:none;"></canvas>
     <script src="/static/share.js"></script>
     <script>
+        // --- FIREBASE CONFIGURATION ---
+        // Loaded from .env via Flask
+        const firebaseConfig = {
+            apiKey: "{{ firebase_config.apiKey }}",
+            authDomain: "{{ firebase_config.authDomain }}",
+            projectId: "{{ firebase_config.projectId }}",
+            storageBucket: "{{ firebase_config.storageBucket }}",
+            messagingSenderId: "{{ firebase_config.messagingSenderId }}",
+            appId: "{{ firebase_config.appId }}"
+        };
+
+        let currentUser = null;
+        let authToken = null;
+
+        // Initialize Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const provider = new firebase.auth.GoogleAuthProvider();
+
+            // Login Function
+            window.signInWithGoogle = () => {
+                auth.signInWithPopup(provider).catch(error => {
+                    console.error("Login Failed:", error);
+                    if (error.code === 'auth/popup-closed-by-user') {
+                        // User closed the popup, no need to show an alarming alert
+                        return;
+                    }
+                    showCustomAlert("LOGIN FAILED: " + error.message, "LOGIN ERROR 🛑", "TRY AGAIN");
+                });
+            };
+
+            // Auth State Listener
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    console.log("Logged in:", user.displayName);
+                    currentUser = user;
+                    authToken = await user.getIdToken();
+
+                    // Update UI
+                    document.getElementById('loginBtn').style.display = 'none';
+                    document.getElementById('userProfile').style.display = 'flex';
+                    document.getElementById('userAvatar').src = user.photoURL;
+
+                    // Sync with Backend
+                    syncUserWithBackend(authToken);
+                } else {
+                    console.log("Logged out");
+                    currentUser = null;
+                    authToken = null;
+                    document.getElementById('loginBtn').style.display = 'block';
+                    document.getElementById('userProfile').style.display = 'none';
+                }
+            });
+
+            async function syncUserWithBackend(token) {
+                try {
+                    const response = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: token })
+                    });
+                    const data = await response.json();
+
+                    if (data.status === 'new_user' || !data.username) {
+                        // Show username setup modal if no username
+                        document.getElementById('usernameModal').style.display = 'flex';
+                    } else {
+                        // Update Profile Link
+                        document.getElementById('profileLink').href = '/u/' + data.username;
+                    }
+                } catch (e) {
+                    console.error("Backend Sync Error:", e);
+                }
+            }
+
+            window.submitUsername = async () => {
+                const input = document.getElementById('usernameInput');
+                const errorDiv = document.getElementById('usernameError');
+                const username = input.value.trim().toLowerCase();
+
+                if (username.length < 3) {
+                    errorDiv.textContent = "Too short (3+ chars)";
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/set-username', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: authToken, username: username })
+                    });
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        document.getElementById('usernameModal').style.display = 'none';
+                        document.getElementById('profileLink').href = '/u/' + username;
+                        showCustomAlert("WELCOME TO THE CLUB, " + username.toUpperCase() + "! 🎉", "OFFICIAL DRIP ✅", "LET'S GO");
+                    } else {
+                        errorDiv.textContent = data.error || "Username taken";
+                        errorDiv.style.display = 'block';
+                    }
+                } catch (e) {
+                    errorDiv.textContent = "Network Error";
+                    errorDiv.style.display = 'block';
+                }
+            };
+
+        } catch (e) {
+            console.error("Firebase Init Error (Check Config):", e);
+        }
+
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const scanBtn = document.getElementById('scanBtn');
@@ -706,6 +920,8 @@
         let uploadedFile = null;
         let scannedImageDataUrl = null; // Store the scanned image for share card
 
+        let currentFacingMode = 'environment'; // Default to rear camera
+
         // Camera Initialization (Manual)
         async function initCamera() {
             startScreen.style.display = 'none';
@@ -713,14 +929,39 @@
             previewImage.style.display = 'none';
             uploadedFile = null; // Clear any old upload
 
+            // Show switch button on mobile
+            if (window.innerWidth <= 600) {
+                document.getElementById('cameraSwitchBtn').style.display = 'flex';
+            }
+
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // improved constraints for mobile rear camera
+                const constraints = {
+                    video: {
+                        facingMode: currentFacingMode
+                    }
+                };
+
+                // Stop any existing tracks first
+                if (video.srcObject) {
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                }
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
             } catch (err) {
                 console.error("Camera Error:", err);
                 alert("Could not access camera: " + err.name);
                 resetApp(); // Go back to start
             }
+        }
+
+        async function switchCamera() {
+            // Toggle Mode
+            currentFacingMode = (currentFacingMode === 'environment') ? 'user' : 'environment';
+
+            // Re-Initialize with new mode
+            await initCamera();
         }
 
         // Upload Logic
@@ -746,13 +987,32 @@
             }
         }
 
-        function showCustomAlert(message, title = '⚠️ WAIT A SEC! ⚠️', buttonText = 'OK, MY BAD') {
-            const alertText = document.querySelector('.comic-alert-text');
-            const alertTitle = document.querySelector('.comic-alert-title');
-            const alertButton = document.querySelector('.comic-btn');
+        // MODIFIED: Custom Alert with Optional Secondary Button
+        function showCustomAlert(message, title = '⚠️ WAIT A SEC! ⚠️', buttonText = 'OK, MY BAD', secButtonText = null, secButtonAction = null) {
+            const alertText = customAlert.querySelector('.comic-alert-text');
+            const alertTitle = customAlert.querySelector('.comic-alert-title');
+            const alertButton = document.getElementById('mainAlertBtn');
+            const secButton = document.getElementById('secondaryAlertBtn');
+
             alertText.textContent = message;
             alertTitle.textContent = title;
             alertButton.textContent = buttonText;
+
+            // Secondary Button Logic
+            if (secButtonText && secButtonAction) {
+                secButton.textContent = secButtonText;
+                secButton.style.display = 'block';
+                secButton.onclick = () => {
+                    alertButton.onclick = closeAlert; // Reset main button
+                    secButton.onclick = null; // Clean up
+                    closeAlert();
+                    secButtonAction();
+                };
+            } else {
+                secButton.style.display = 'none';
+                secButton.onclick = null;
+            }
+
             customAlert.style.display = 'flex';
         }
 
@@ -863,6 +1123,9 @@
             // Normal Camera Scan Flow
             scanBtn.disabled = true;
 
+            // Hide Camera Switch Button during scan
+            document.getElementById('cameraSwitchBtn').style.display = 'none';
+
             // Start Countdown
             let timeLeft = parseInt(timerVal);
             countdownOverlay.innerText = timeLeft;
@@ -888,6 +1151,9 @@
             if (!uploadedFile) {
                 document.getElementById('stableMsg').style.display = 'block';
             }
+
+            // Ensure switch button is hidden (redundant safety)
+            document.getElementById('cameraSwitchBtn').style.display = 'none';
 
             const formData = new FormData();
             const vibe = document.getElementById('vibeSelector').value;
@@ -921,8 +1187,14 @@
         }
 
         function sendRequest(formData) {
+            const headers = {};
+            if (authToken) {
+                headers['Authorization'] = 'Bearer ' + authToken;
+            }
+
             fetch('/roast', {
                 method: 'POST',
+                headers: headers,
                 body: formData
             })
                 .then(response => response.json())
@@ -936,7 +1208,7 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("Network Error");
+                    alert("Error: " + err.message); // Show actual error
                     resetApp();
                 });
         }
@@ -966,6 +1238,81 @@
                 const audio = new Audio("data:audio/mp3;base64," + data.audio);
                 audio.play().catch(e => console.log("Audio play failed:", e));
             }
+
+            // Logic for Save Button: ALWAYS VISIBLE now
+            currentScore = data.score;
+            const saveBtn = document.getElementById('saveScoreBtn');
+            if (saveBtn) {
+                saveBtn.style.display = 'block';
+                saveBtn.disabled = false;
+
+                // Visual check: Green if logged in, maybe Yellow/Gray if not? 
+                // Keeping it green to encourage clicking, alert will handle the rest.
+                saveBtn.innerHTML = 'SAVE DRIP 💾';
+                saveBtn.style.background = '#4CD964';
+            } else {
+                console.warn("Save Button not found in DOM");
+            }
+        }
+
+        let currentScore = 0;
+
+        async function saveScore() {
+            if (!currentUser) {
+                showCustomAlert(
+                    "SIGN IN TO SAVE AND SEE YOUR DRIP STATS! 📊",
+                    "LOGIN REQUIRED 🔒",
+                    "LATER",
+                    "SIGN IN 🔑",
+                    window.signInWithGoogle
+                );
+                return;
+            }
+            if (!authToken) authToken = await currentUser.getIdToken();
+
+            const saveBtn = document.getElementById('saveScoreBtn');
+            saveBtn.innerHTML = 'SAVING... ⏳';
+            saveBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/save-score', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        idToken: authToken,
+                        score: currentScore
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    saveBtn.innerHTML = 'SAVED! ✅';
+                    saveBtn.style.background = '#ccc';
+
+                    // Get username from profile link for redirect
+                    const profileLink = document.getElementById('profileLink');
+                    const profileUrl = profileLink ? profileLink.getAttribute('href') : '/';
+
+                    showCustomAlert(
+                        "SCORE SAVED! CHECK YOUR STATS? 📈",
+                        "NICE! 🎉",
+                        "LATER",
+                        "SEE STATS 📊",
+                        () => { window.location.href = profileUrl; }
+                    );
+                } else {
+                    saveBtn.innerHTML = 'RETRY ❌';
+                    saveBtn.disabled = false;
+                    saveBtn.style.background = 'red';
+                    alert("Save Error: " + data.error);
+                }
+            } catch (e) {
+                console.error(e);
+                saveBtn.innerHTML = 'RETRY ❌';
+                saveBtn.disabled = false;
+                alert("Network Error: " + e.message);
+            }
         }
 
         function animateScore(target) {
@@ -994,10 +1341,15 @@
             document.getElementById('stableMsg').style.display = 'none';
             document.getElementById('tipsText').innerText = "Loading...";
 
+            // Hide Save Button on Reset
+            const saveBtn = document.getElementById('saveScoreBtn');
+            if (saveBtn) saveBtn.style.display = 'none';
+
             // Full Reset to Start Screen
             startScreen.style.display = 'flex';
             video.style.display = 'none'; // Hide video
             previewImage.style.display = 'none'; // Hide preview
+            document.getElementById('cameraSwitchBtn').style.display = 'none'; // Hide switch button
             uploadedFile = null;
 
             // Optional: Stop Camera Stream to save resources

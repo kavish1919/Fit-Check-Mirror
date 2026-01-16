@@ -409,9 +409,66 @@ video {
 }
 
 .stable-msg {
-    font-size: 0.9rem !important;
     padding: 8px 12px !important;
     white-space: nowrap !important;
     width: auto !important;
     max-width: 90% !important;
+}
+
+/* 7. User Controls (Login/Profile) Placement */
+/* Move to Top Right and Scale Down */
+#userControls {
+    top: 10px !important;
+    right: 10px !important;
+    left: auto !important;
+    transform: scale(0.8);
+    transform-origin: top right;
+}
+
+/* Mobile Login Button Styling */
+#loginBtn,
+#userProfile {
+    min-width: 0 !important;
+    width: 50px !important;
+    height: 50px !important;
+    padding: 2px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center;
+    align-items: center;
+    gap: 0 !important;
+    box-shadow: 4px 4px 0 #fff740 !important;
+    /* Ensure shadow matches */
+}
+
+/* FIX: Ensure buttons hidden by JS stay hidden */
+#loginBtn[style*="display: none"],
+#userProfile[style*="display: none"] {
+    display: none !important;
+}
+
+#loginBtn .desktop-text,
+#userProfile .desktop-profile {
+    display: none !important;
+}
+
+#loginBtn .mobile-icon,
+#userProfile .mobile-profile-icon {
+    display: flex !important;
+    /* Flex for centering */
+}
+
+#loginBtn .mobile-icon {
+    font-size: 1.5rem !important;
+    font-weight: 900 !important;
+    margin-bottom: -3px !important;
+}
+
+#loginBtn .mobile-text {
+    display: block !important;
+    font-size: 0.6rem !important;
+    font-weight: bold !important;
+    text-transform: uppercase;
+    line-height: 1 !important;
 }

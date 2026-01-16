@@ -5,3 +5,4 @@ edge-tts
 python-dotenv
 gunicorn
 nest_asyncio
+firebase-admin

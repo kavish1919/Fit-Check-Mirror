@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fit Check Profile - {{ user.username or user.displayName }}</title>
+    <link rel="icon" type="image/x-icon" href="/static/fitcheckmirror_icon.ico">
+    <link rel="stylesheet" href="/static/mobile.css" media="(max-width: 600px)">
+    <style>
+        /* Reuse variables from index.html (or assuming they are in mobile.css) */
+        :root {
+            --primary: #FF3B30;
+            /* Vibrant Red */
+            --yellow: #FFCC00;
+            /* Sticky Note Yellow */
+            --blue: #007AFF;
+            /* Comic Blue */
+            --black: #000000;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+            /* Force no scroll */
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            background: url('/static/background_image.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            animation: fadeInPage 0.5s forwards;
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Page Transition Animations */
+        @keyframes fadeInPage {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUpCard {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .profile-card {
+            background: white;
+            border: 4px solid black;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 10px 10px 0px black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+            /* Card Animation */
+            animation: slideUpCard 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s forwards;
+            opacity: 0;
+            /* Hidden initially */
+        }
+
+        .card-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid black;
+            object-fit: cover;
+            background-color: #ddd;
+        }
+
+        .username {
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 10px 0 5px 0;
+            text-align: center;
+        }
+
+        .handle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .stat-box {
+            background: var(--yellow);
+            border: 3px solid black;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 4px 4px 0px black;
+            transition: transform 0.1s;
+        }
+
+        .stat-box:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px black;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .best-score {
+            background: #4CD964;
+        }
+
+        /* Green */
+        .worst-score {
+            background: #FF3B30;
+            color: white;
+        }
+
+        /* Red */
+
+        .home-btn {
+            background: var(--blue);
+            color: white;
+            border: 3px solid black;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 5px 5px 0px black;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 40px;
+            /* Increased from 20px */
+        }
+
+        .home-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0px black;
+        }
+
+        /* Responsive Fix for Short Screens */
+        @media (max-height: 750px) {
+            .profile-card {
+                padding: 10px;
+                /* Condense padding */
+                width: 90%;
+                margin: 0 auto;
+                transform: none;
+                /* Remove global scale */
+            }
+
+            .avatar {
+                width: 80px;
+                /* Shrink avatar */
+                height: 80px;
+            }
+
+            .username {
+                font-size: 1.5rem;
+                /* Shrink text */
+                margin: 5px 0;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+                /* Shrink numbers */
+            }
+
+            .stats-grid {
+                gap: 8px;
+                /* Tighter grid */
+            }
+
+            .stat-box {
+                padding: 8px;
+            }
+
+            .home-btn {
+                padding: 10px 20px;
+                font-size: 1rem;
+                margin-top: 20px;
+                /* Increased spacing */
+            }
+
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sign Out Button (Hidden by default) -->
+    <button id="signOutBtn" onclick="signOut()"
+        style="display: none; position: fixed; top: 10px; right: 10px; background: white; border: 3px solid black; padding: 5px 15px; font-family: inherit; font-weight: bold; cursor: pointer; z-index: 100;">
+        SIGN OUT
+    </button>
+
+    <!-- Delete Confirmation Modal (Custom) -->
+    <div id="deleteConfirmModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 300; justify-content: center; align-items: center; opacity: 0; animation: fadeInPage 0.3s forwards;">
+        <div
+            style="background: white; border: 4px solid black; padding: 20px; width: 90%; max-width: 350px; text-align: center; box-shadow: 10px 10px 0px black;">
+            <div style="font-size: 2rem; margin-bottom: 10px;">⚠️</div>
+            <div style="font-size: 1.5rem; font-weight: 900; margin-bottom: 10px; text-transform: uppercase;">Are you
+                sure?</div>
+            <p style="font-size: 1.1rem; margin-bottom: 20px;">This action is permanent.<br>Your fit check history will
+                be deleted forever.</p>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="document.getElementById('deleteConfirmModal').style.display='none'"
+                    style="background: #ccc; border: 3px solid black; padding: 10px 20px; font-weight: bold; cursor: pointer;">CANCEL</button>
+                <button onclick="confirmDelete()"
+                    style="background: #FF3B30; color: white; border: 3px solid black; padding: 10px 20px; font-weight: bold; cursor: pointer;">YES,
+                    DELETE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Success Modal (Custom) -->
+    <div id="deleteSuccessModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 400; justify-content: center; align-items: center; opacity: 0; animation: fadeInPage 0.3s forwards;">
+        <div style="color: white; text-align: center;">
+            <div style="font-size: 4rem; margin-bottom: 20px;">👋</div>
+            <div style="font-size: 2rem; font-weight: 900; text-transform: uppercase;">ACCOUNT DELETED</div>
+            <p style="font-size: 1.5rem; margin-top: 10px;">Hope to see you again!</p>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; justify-content: center; align-items: center; opacity: 0; animation: fadeInPage 0.3s forwards;">
+        <div
+            style="background: white; border: 4px solid black; padding: 20px; width: 90%; max-width: 400px; position: relative; box-shadow: 10px 10px 0px black;">
+            <div
+                style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; text-align: center; background: yellow; border: 2px solid black;">
+                EDIT PROFILE ✏️</div>
+
+            <label style="font-weight: bold;">DISPLAY NAME</label>
+            <input type="text" id="editDisplayName" value="{{ user.displayName }}"
+                style="width: 100%; padding: 10px; border: 2px solid black; margin-bottom: 15px; font-family: inherit; font-size: 1.1rem;">
+
+            <label style="font-weight: bold;">USERNAME</label>
+            <input type="text" id="editUsername" value="{{ user.username }}"
+                style="width: 100%; padding: 10px; border: 2px solid black; margin-bottom: 20px; font-family: inherit; font-size: 1.1rem; text-transform: lowercase;">
+
+            <div style="display: flex; gap: 10px; justify-content: space-between;">
+                <button onclick="closeEditModal()"
+                    style="background: #ccc; border: 3px solid black; padding: 10px 20px; font-weight: bold; cursor: pointer;">CANCEL</button>
+                <button onclick="saveProfile()"
+                    style="background: #4CD964; border: 3px solid black; padding: 10px 20px; font-weight: bold; cursor: pointer;">SAVE</button>
+            </div>
+
+            <hr style="border: 2px solid black; margin: 20px 0;">
+
+            <button onclick="deleteAccount()"
+                style="width: 100%; background: #FF3B30; color: white; border: 3px solid black; padding: 10px; font-weight: bold; cursor: pointer;">DELETE
+                ACCOUNT 🗑️</button>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <!-- Controls Container -->
+        <div class="card-controls">
+            <!-- Edit Button (Visible if logged in user matches) -->
+            <button id="editBtn" onclick="openEditModal()"
+                style="display: none; background: yellow; border: 3px solid black; padding: 5px 10px; font-weight: bold; cursor: pointer; text-align: left;">
+                EDIT ✏️
+            </button>
+
+            <!-- Share Button (Always Visible) -->
+            <button id="shareBtn" onclick="shareProfile()"
+                style="background: #007AFF; color: white; border: 3px solid black; padding: 5px 10px; font-weight: bold; cursor: pointer; text-align: left; font-family: 'Patrick Hand', cursive;">
+                SHARE 🔗
+            </button>
+        </div>
+
+        <!-- Sticker decoration -->
+        <div
+            style="position: absolute; top: -15px; right: -15px; background: #FF3B30; color: white; padding: 5px 10px; border: 3px solid black; transform: rotate(10deg); font-weight: bold;">
+            VERIFIED DRIP ✅
+        </div>
+
+        <img src="{{ user.photoURL or '/static/mirror_image.png' }}" alt="Avatar" class="avatar">
+
+        <div class="username">{{ user.displayName }}</div>
+        <div class="handle">@{{ user.username }}</div>
+
+        <div class="stats-grid">
+            <div class="stat-box">
+                <span class="stat-value">{{ user.stats.totalScans }}</span>
+                <span class="stat-label">Total Fits</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-value">{{ user.stats.averageScore }}</span>
+                <span class="stat-label">Avg Rating</span>
+            </div>
+            <div class="stat-box best-score">
+                <span class="stat-value">{{ user.stats.highestScore }}</span>
+                <span class="stat-label">Peak Drip</span>
+            </div>
+            <div class="stat-box worst-score">
+                <span class="stat-value">{{ user.stats.lowestScore if user.stats.totalScans > 0 else '-' }}</span>
+                <span class="stat-label">Worst Fit</span>
+            </div>
+        </div>
+    </div>
+
+    <a href="/" class="home-btn">CHECK YOUR OWN FIT 🪞</a>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script>
+        // Profile User Data (from Backend)
+        const profileUserUid = "{{ user.uid if 'uid' in user else '' }}"; // We need UID to verify ownership
+        // Note: app.py currently sends user_doc.to_dict(), which might NOT include 'uid' if it's the document ID. 
+        // We might need to rely on username matching or fix app.py. 
+        // Let's assume username match for now since we have it.
+        const profileUsername = "{{ user.username }}";
+
+        // Firebase Config passed from Flask
+        const firebaseConfig = {
+            apiKey: "{{ firebase_config.apiKey }}",
+            authDomain: "{{ firebase_config.authDomain }}",
+            projectId: "{{ firebase_config.projectId }}",
+            storageBucket: "{{ firebase_config.storageBucket }}",
+            messagingSenderId: "{{ firebase_config.messagingSenderId }}",
+            appId: "{{ firebase_config.appId }}"
+        };
+
+        let currentUserToken = null;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+
+            // Show Contols if logged in matches verification
+            auth.onAuthStateChanged(async (user) => {
+                const signoutBtn = document.getElementById('signOutBtn');
+                const editBtn = document.getElementById('editBtn');
+
+                if (user) {
+                    currentUserToken = await user.getIdToken();
+
+                    // STRICT CHECK: Only show controls if Logged-In User == Profile Owner
+                    // We assume profileUserUid is rendered correctly from backend
+                    if (user.uid === profileUserUid) {
+                        signoutBtn.style.display = 'block';
+                        editBtn.style.display = 'block';
+                    } else {
+                        // User is logged in, but looking at someone else's profile
+                        signoutBtn.style.display = 'none';
+                        editBtn.style.display = 'none';
+                    }
+                } else {
+                    // Not logged in at all
+                    signoutBtn.style.display = 'none';
+                    editBtn.style.display = 'none';
+                }
+            });
+
+            function signOut() {
+                auth.signOut().then(() => { window.location.href = '/'; });
+            }
+
+            // --- EDITING LOGIC ---
+            window.openEditModal = () => {
+                document.getElementById('editProfileModal').style.display = 'flex';
+            };
+
+            window.closeEditModal = () => {
+                document.getElementById('editProfileModal').style.display = 'none';
+            };
+
+            window.shareProfile = () => {
+                const btn = document.getElementById('shareBtn');
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    btn.innerHTML = "COPIED! ✅";
+                    btn.style.background = "#4CD964"; // Green feedback
+                    setTimeout(() => {
+                        btn.innerHTML = "SHARE 🔗";
+                        btn.style.background = "#007AFF"; // Revert to Blue
+                    }, 2000);
+                });
+            };
+
+            window.saveProfile = async () => {
+                if (!currentUserToken) return alert("Not logged in!");
+
+                const newName = document.getElementById('editDisplayName').value;
+                const newUsername = document.getElementById('editUsername').value;
+
+                try {
+                    const response = await fetch('/api/update-profile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            idToken: currentUserToken,
+                            displayName: newName,
+                            username: newUsername
+                        })
+                    });
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        // Reload to 'u/newUsername' if username changed, else reload.
+                        if (newUsername !== "{{ user.username }}") {
+                            window.location.href = '/u/' + newUsername;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                } catch (e) { alert("Network Error"); }
+            };
+
+            window.deleteAccount = () => {
+                // Open Custom Modal
+                document.getElementById('editProfileModal').style.display = 'none'; // Close edit if open
+                document.getElementById('deleteConfirmModal').style.display = 'flex';
+            };
+
+            window.confirmDelete = async () => {
+                try {
+                    const response = await fetch('/api/delete-account', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken: currentUserToken })
+                    });
+                    if (response.ok) {
+                        // Close Confirm Modal
+                        document.getElementById('deleteConfirmModal').style.display = 'none';
+                        // Show Success Modal
+                        document.getElementById('deleteSuccessModal').style.display = 'flex';
+
+                        // Redirect after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 2000);
+                    } else {
+                        alert("Failed to delete.");
+                    }
+                } catch (e) { alert("Error deleting."); }
+            };
+
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+        }
+    </script>
+</body>
+
+</html>

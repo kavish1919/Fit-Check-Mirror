@@ -38,6 +38,9 @@ venv.bak/
 # Environment variables
 .env
 
+# Firebase Credentials (NEVER COMMIT)
+firebase_credentials.json
+
 # Flask stuff
 instance/
 .webassets-cache
