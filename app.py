@@ -22,16 +22,34 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 client = Groq(api_key=GROQ_API_KEY)
 
 # Initialize Firebase
-# NOTE: User must place firebase_credentials.json in the root directory
-cred_path = "firebase_credentials.json"
+# Priority: 1. Environment Variables (for cloud), 2. JSON file (for local)
 db = None
-if os.path.exists(cred_path):
-    cred = credentials.Certificate(cred_path)
+
+firebase_project_id = os.environ.get('FIREBASE_PROJECT_ID')
+firebase_private_key = os.environ.get('FIREBASE_PRIVATE_KEY')
+firebase_client_email = os.environ.get('FIREBASE_CLIENT_EMAIL')
+
+if firebase_project_id and firebase_private_key and firebase_client_email:
+    # Cloud deployment: Use environment variables
+    cred_dict = {
+        "type": "service_account",
+        "project_id": firebase_project_id,
+        "private_key": firebase_private_key.replace('\\n', '\n'),  # Handle escaped newlines
+        "client_email": firebase_client_email,
+        "token_uri": "https://oauth2.googleapis.com/token",
+    }
+    cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
     db = firestore.client()
-    print("✅ Firebase initialized successfully!")
+    print("✅ Firebase initialized from environment variables!")
+elif os.path.exists("firebase_credentials.json"):
+    # Local development: Use JSON file
+    cred = credentials.Certificate("firebase_credentials.json")
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+    print("✅ Firebase initialized from credentials file!")
 else:
-    print("⚠️ WARNING: firebase_credentials.json not found. Database features will be disabled.")
+    print("⚠️ WARNING: No Firebase credentials found. Database features will be disabled.")
 
 # Helper: Encode Image to Base64
 def encode_image(file_storage):
