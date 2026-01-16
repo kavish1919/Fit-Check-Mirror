@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FIT CHECK MIRROR</title>
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/mobile.css?v=26" media="(max-width: 600px)">
+    <link rel="stylesheet" href="/static/mobile.css?v=29" media="(max-width: 600px)">
     <style>
         :root {
             --paper-white: #fdfbf7;
@@ -253,6 +253,7 @@
             color: white;
             text-shadow: 1px 1px 0 #000;
             transform: rotate(1deg);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         /* Overlay Styles Adapted */
@@ -510,7 +511,7 @@
         }
 
         /* Responsive Visibility Toggles */
-        /* @media (min-width: 601px) {
+        @media (min-width: 601px) {
             .mobile-only {
                 display: none !important;
             }
@@ -528,7 +529,7 @@
             .desktop-only {
                 display: none !important;
             }
-        } */
+        }
 
         /* Wrapper for scaling UI content independently of background */
         .ui-wrapper {
@@ -544,6 +545,11 @@
             .ui-wrapper {
                 zoom: 0.8;
                 /* Scale down to 80% for laptops */
+            }
+
+            /* Ensure mobile popups are hidden on desktop */
+            .mobile-popup-overlay {
+                display: none !important;
             }
         }
     </style>
@@ -606,9 +612,9 @@
         </div>
 
         <div class="controls">
-            <!-- Native Select (Restored for All Devices) -->
-            <select id="vibeSelector" class="vibe-select">
-                <option value="" disabled selected>✨ SELECT YOUR VIBE ✨</option>
+            <!-- Desktop Dropdowns -->
+            <select id="vibeSelector" class="vibe-select desktop-only">
+                <option value="">✨ SELECT VIBE ✨</option>
                 <option value="Casual Wear">🧢 Daily Edit (Casual)</option>
                 <option value="Office Wear">💼 Boardroom (Formal)</option>
                 <option value="Party Wear">🥂 Evening Edit (Party)</option>
@@ -617,16 +623,58 @@
                 <option value="Sportswear">🏃 In Motion (Sports)</option>
             </select>
 
-            <select id="timerSelector" class="vibe-select" style="width: 80px;">
-                <option value="3" selected>3s</option>
+            <select id="timerSelector" class="desktop-only">
+                <option value="3">3s</option>
                 <option value="5">5s</option>
                 <option value="10">10s</option>
             </select>
+
+            <!-- Mobile Popup Buttons -->
+            <button id="mobileVibeBtn" class="mobile-popup-btn mobile-only" onclick="openVibePopup()">
+                <span id="mobileVibeText">✨ SELECT VIBE ✨</span>
+            </button>
+            <button id="mobileTimerBtn" class="mobile-popup-btn mobile-only" onclick="openTimerPopup()">
+                <span id="mobileTimerText">3s</span>
+            </button>
 
             <button id="scanBtn" onclick="scanOutfit()">SCAN OUTFIT</button>
         </div>
     </div> <!-- End of ui-wrapper -->
 
+
+    <!-- Mobile Vibe Popup -->
+    <div id="vibePopup" class="mobile-popup-overlay" onclick="closeVibePopup()">
+        <div class="mobile-popup-box" onclick="event.stopPropagation()">
+            <div class="mobile-popup-title">SELECT YOUR VIBE</div>
+            <div class="mobile-popup-options">
+                <div class="mobile-popup-option" onclick="selectMobileVibe('Casual Wear', '🧢 Daily Edit (Casual)')">🧢
+                    Daily Edit (Casual)</div>
+                <div class="mobile-popup-option" onclick="selectMobileVibe('Office Wear', '💼 Boardroom (Formal)')">💼
+                    Boardroom (Formal)</div>
+                <div class="mobile-popup-option" onclick="selectMobileVibe('Party Wear', '🥂 Evening Edit (Party)')">🥂
+                    Evening Edit (Party)</div>
+                <div class="mobile-popup-option" onclick="selectMobileVibe('Street Style', '🛹 Urban Pulse (Street)')">
+                    🛹 Urban Pulse (Street)</div>
+                <div class="mobile-popup-option"
+                    onclick="selectMobileVibe('Traditional Wear', '👘 Heritage (Traditional)')">👘 Heritage
+                    (Traditional)</div>
+                <div class="mobile-popup-option" onclick="selectMobileVibe('Sportswear', '🏃 In Motion (Sports)')">🏃 In
+                    Motion (Sports)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Timer Popup -->
+    <div id="timerPopup" class="mobile-popup-overlay" onclick="closeTimerPopup()">
+        <div class="mobile-popup-box" onclick="event.stopPropagation()">
+            <div class="mobile-popup-title">SELECT TIMER</div>
+            <div class="mobile-popup-options">
+                <div class="mobile-popup-option" onclick="selectMobileTimer('3', '3s')">3 seconds</div>
+                <div class="mobile-popup-option" onclick="selectMobileTimer('5', '5s')">5 seconds</div>
+                <div class="mobile-popup-option" onclick="selectMobileTimer('10', '10s')">10 seconds</div>
+            </div>
+        </div>
+    </div>
 
     <!-- Custom Alert Modal -->
     <div id="customAlert" class="comic-alert">
@@ -656,6 +704,7 @@
         const fileInput = document.getElementById('fileInput');
 
         let uploadedFile = null;
+        let scannedImageDataUrl = null; // Store the scanned image for share card
 
         // Camera Initialization (Manual)
         async function initCamera() {
@@ -697,15 +746,71 @@
             }
         }
 
+        function showCustomAlert(message, title = '⚠️ WAIT A SEC! ⚠️', buttonText = 'OK, MY BAD') {
+            const alertText = document.querySelector('.comic-alert-text');
+            const alertTitle = document.querySelector('.comic-alert-title');
+            const alertButton = document.querySelector('.comic-btn');
+            alertText.textContent = message;
+            alertTitle.textContent = title;
+            alertButton.textContent = buttonText;
+            customAlert.style.display = 'flex';
+        }
+
         function closeAlert() {
             customAlert.style.display = 'none';
-            const vibeSelector = document.getElementById('vibeSelector');
-            vibeSelector.focus();
-            try {
-                vibeSelector.showPicker();
-            } catch (e) {
-                vibeSelector.click();
+
+            // Auto-open vibe selection after closing category prompt
+            const alertText = document.querySelector('.comic-alert-text').textContent;
+            if (alertText.includes("WHAT YOU'RE WEARING")) {
+                if (window.innerWidth <= 600) {
+                    // Mobile: open the popup
+                    openVibePopup();
+                } else {
+                    // Desktop: focus and open the dropdown
+                    const vibeSelector = document.getElementById('vibeSelector');
+                    if (vibeSelector) {
+                        vibeSelector.focus();
+                        // Use showPicker() to open the dropdown (modern browsers)
+                        if (vibeSelector.showPicker) {
+                            vibeSelector.showPicker();
+                        }
+                    }
+                }
             }
+        }
+
+        // Mobile Popup Functions
+        let mobileVibeValue = '';
+        let mobileTimerValue = '3';
+
+        function openVibePopup() {
+            document.getElementById('vibePopup').style.display = 'flex';
+        }
+
+        function closeVibePopup() {
+            document.getElementById('vibePopup').style.display = 'none';
+        }
+
+        function selectMobileVibe(value, text) {
+            mobileVibeValue = value;
+            // Extract just emoji and short name for button display
+            const shortText = text.split('(')[0].trim(); // e.g., "🧢 Daily Edit"
+            document.getElementById('mobileVibeText').textContent = shortText;
+            closeVibePopup();
+        }
+
+        function openTimerPopup() {
+            document.getElementById('timerPopup').style.display = 'flex';
+        }
+
+        function closeTimerPopup() {
+            document.getElementById('timerPopup').style.display = 'none';
+        }
+
+        function selectMobileTimer(value, text) {
+            mobileTimerValue = value;
+            document.getElementById('mobileTimerText').textContent = text;
+            closeTimerPopup();
         }
 
         // Custom Dropdown Logic (Removed)
@@ -713,22 +818,43 @@
         // Close dropdown when clicking outside (Removed)
 
         function scanOutfit() {
-            // Check native selector
-            const vibeSelector = document.getElementById('vibeSelector');
-            const selectedVibe = vibeSelector.value;
+            // Check screen size and use appropriate selector
+            let selectedVibe, timerVal;
 
-            if (!selectedVibe) {
-                // Show Alert if empty
-                customAlert.style.display = 'flex';
+            if (window.innerWidth <= 600) {
+                // Mobile: use popup values
+                selectedVibe = mobileVibeValue;
+                timerVal = mobileTimerValue;
+
+                if (!selectedVibe) {
+                    // Show Alert if empty
+                    showCustomAlert("TELL THE MIRROR WHAT YOU'RE WEARING SO WE CAN JUDGE YOU FAIRLY!");
+                    return;
+                }
+            } else {
+                // Desktop: use dropdown selectors
+                selectedVibe = document.getElementById('vibeSelector').value;
+                timerVal = document.getElementById('timerSelector').value;
+
+                if (!selectedVibe) {
+                    // Show Alert if empty
+                    showCustomAlert("TELL THE MIRROR WHAT YOU'RE WEARING SO WE CAN JUDGE YOU FAIRLY!");
+                    return;
+                }
+            }
+
+            // Check if camera is active or file is uploaded
+            const isCameraActive = video.srcObject && video.srcObject.active;
+            if (!uploadedFile && !isCameraActive) {
+                // No image source available
+                showCustomAlert('HOLD UP! UPLOAD A PICTURE OR START THE CAMERA FIRST!');
                 return;
             }
 
             // Proceed with scan...
-            const timerVal = document.getElementById('timerSelector').value;
             const countdownOverlay = document.getElementById('countdownOverlay');
 
-            // If we have an uploaded file, we shouldn't be here mostly (as it auto-scans), 
-            // but if user manually triggers 'Scan' in upload mode (maybe retry?), handle it.
+            // If we have an uploaded file, skip countdown
             if (uploadedFile) {
                 performScan();
                 return;
@@ -770,6 +896,12 @@
             if (uploadedFile) {
                 // Use the uploaded file directly
                 formData.append('image', uploadedFile);
+                // Save the uploaded image data URL for share card
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    scannedImageDataUrl = e.target.result;
+                };
+                reader.readAsDataURL(uploadedFile);
                 sendRequest(formData);
             } else {
                 // Capture from Canvas
@@ -777,6 +909,9 @@
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Save the captured image data URL for share card
+                scannedImageDataUrl = canvas.toDataURL('image/jpeg');
 
                 canvas.toBlob(blob => {
                     formData.append('image', blob, 'capture.jpg');
@@ -819,6 +954,13 @@
             document.getElementById('tipsText').innerText = data.tips || "No specific advice.";
 
             resultOverlay.classList.add('visible');
+
+            // Stop camera after scan (if camera was used, not uploaded file)
+            if (!uploadedFile && video.srcObject) {
+                const tracks = video.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+            }
 
             if (data.audio) {
                 const audio = new Audio("data:audio/mp3;base64," + data.audio);

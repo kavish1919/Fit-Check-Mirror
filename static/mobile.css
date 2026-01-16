@@ -20,6 +20,109 @@ body {
     align-items: center;
 }
 
+/* Responsive Visibility */
+.desktop-only {
+    display: block !important;
+}
+
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 600px) {
+    .desktop-only {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+/* Mobile Popup Buttons */
+.mobile-popup-btn {
+    background: #fff !important;
+    border: 2px solid #000 !important;
+    box-shadow: 4px 4px 0 #fff740 !important;
+    font-size: 0.75rem !important;
+    padding: 6px !important;
+    border-radius: 12px !important;
+    flex: 1 1 auto !important;
+    cursor: pointer !important;
+    font-weight: bold !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#mobileVibeBtn {
+    flex: 1 1 auto !important;
+    max-width: calc(100% - 180px);
+    /* Leave space for timer and scan buttons */
+    min-width: 0;
+    /* Allow shrinking if needed */
+}
+
+/* Mobile Popup Overlay */
+.mobile-popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Mobile Popup Box */
+.mobile-popup-box {
+    background: #fff;
+    border: 4px solid #000;
+    border-radius: 20px;
+    width: 85%;
+    max-width: 400px;
+    max-height: 70vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Mobile Popup Title */
+.mobile-popup-title {
+    background: #fff740;
+    border-bottom: 3px solid #000;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Mobile Popup Options Container */
+.mobile-popup-options {
+    overflow-y: auto;
+    max-height: calc(70vh - 60px);
+}
+
+/* Mobile Popup Option */
+.mobile-popup-option {
+    padding: 15px 20px;
+    border-bottom: 2px solid #eee;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mobile-popup-option:last-child {
+    border-bottom: none;
+}
+
+.mobile-popup-option:active {
+    background: #f0f0f0;
+}
+
 /* New Wrapper takes over the layout distribution */
 
 .ui-wrapper {
@@ -113,8 +216,10 @@ video {
     width: 90%;
     background: transparent;
     padding: 0;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 6px;
+    /* Reduced gap for tighter fit */
+    flex-wrap: nowrap;
+    /* Keep buttons in single row */
     justify-content: space-between;
 }
 
@@ -124,7 +229,8 @@ video {
     background: #fff;
     border: 2px solid #000;
     box-shadow: 4px 4px 0 #fff740 !important;
-    font-size: 1rem;
+    font-size: 0.8rem;
+    /* Smaller font for better fit */
     padding: 10px;
     border-radius: 12px;
     box-sizing: border-box;
@@ -140,6 +246,12 @@ video {
     flex: 0 0 80px;
     width: 80px;
     text-align: center;
+}
+
+#mobileTimerBtn {
+    flex: 0 0 60px !important;
+    /* Smaller width for timer */
+    min-width: 60px;
 }
 
 #scanBtn {
@@ -286,4 +398,20 @@ video {
 .overlay button {
     padding: 8px !important;
     font-size: 0.9rem !important;
+}
+
+/* Loading and Warning Messages - Single Line */
+.loading-text {
+    font-size: 1.2rem !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    max-width: 90% !important;
+}
+
+.stable-msg {
+    font-size: 0.9rem !important;
+    padding: 8px 12px !important;
+    white-space: nowrap !important;
+    width: auto !important;
+    max-width: 90% !important;
 }
