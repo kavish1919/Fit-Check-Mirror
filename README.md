@@ -2,6 +2,8 @@
 
 An AI-powered outfit analyzer that rates your drip and provides honest fashion feedback! Upload a photo or use your camera to get instant style ratings, roasts, and improvement tips.
 
+<!-- Last Updated (Force Refresh): 2026-01-16 -->
+
 ## ✨ Features
 
 - 📸 **Camera & Upload Support** - Use your webcam or upload photos
