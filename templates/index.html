@@ -1005,11 +1005,16 @@
             }
 
             // Fix for Back Button Navigation (BFCache):
-            // When user edits username and hits back, the page might be cached with OLD link.
-            // This forces a re-sync whenever the page is shown.
-            window.addEventListener('pageshow', (event) => {
-                if (authToken) {
-                    console.log("Page shown (back/nav), re-syncing profile...");
+            // Forces a re-sync whenever the page is shown (persisted or nav).
+            window.addEventListener('pageshow', async (event) => {
+                // Try to get fresh token if user is initialized
+                const user = auth.currentUser;
+                if (user) {
+                    console.log("Page shown (user detected), re-syncing...");
+                    const token = await user.getIdToken();
+                    syncUserWithBackend(token);
+                } else if (authToken) {
+                    console.log("Page shown (token detected), re-syncing...");
                     syncUserWithBackend(authToken);
                 }
             });
