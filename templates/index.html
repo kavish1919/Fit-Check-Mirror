@@ -150,7 +150,7 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            transform: scaleX(-1);
+            /* transform: scaleX(-1); Removed per user request */
         }
 
         .scan-line {
@@ -1082,7 +1082,7 @@
         let scannedImageDataUrl = null; // Store the scanned image for share card
         let currentAudio = null; // Track audio to stop it on reset
 
-        let currentFacingMode = 'environment'; // Default to rear camera
+        let currentFacingMode = 'user'; // Default to front camera (selfie)
 
         // Camera Initialization (Manual)
         async function initCamera() {
@@ -1112,6 +1112,11 @@
 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
+
+                // Handle Mirroring:
+                // User requested UN-MIRRORED for both cameras.
+                video.style.transform = 'scaleX(1)';
+
             } catch (err) {
                 console.error("Camera Error:", err);
                 alert("Could not access camera: " + err.name);
