@@ -37,6 +37,13 @@ body {
     .mobile-only {
         display: block !important;
     }
+
+    /* Info Button - show as flex for centered icon */
+    #infoBtn {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
 }
 
 /* Mobile Popup Buttons */
