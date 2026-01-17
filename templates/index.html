@@ -1008,6 +1008,11 @@
             // Forces a Full Reload if the page is restored from cache (Back Button).
             window.addEventListener('pageshow', (event) => {
                 if (event.persisted) {
+                    // Prevent "Flash of Stale Content": 
+                    // Show custom branded loading overlay
+                    const overlay = document.getElementById('loadingOverlay');
+                    if (overlay) overlay.style.display = 'flex';
+
                     console.log("Page restored from cache. Reloading...");
                     window.location.reload();
                     return;
@@ -1556,6 +1561,34 @@
             }
         }
     </script>
+
+    <!-- Back Navigation Loading Overlay -->
+    <div id="loadingOverlay"
+        style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#fdfbf7; z-index:99999; flex-direction:column; justify-content:center; align-items:center;">
+        <img src="/static/fitcheckmirror_icon.ico"
+            style="width:80px; height:80px; margin-bottom:20px; border-radius:15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+        <div class="loader"></div>
+    </div>
+    <style>
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #2c2c2c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 
 </body>
 
