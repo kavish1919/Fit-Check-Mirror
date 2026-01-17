@@ -380,7 +380,7 @@
         </div>
     </div>
 
-    <a href="javascript:void(0)" onclick="goBackOrHome()" class="home-btn">CHECK YOUR OWN FIT 🪞</a>
+    <a href="/" class="home-btn">CHECK YOUR OWN FIT 🪞</a>
 
     <div style="position: absolute; bottom: 20px; width: 100%; text-align: center; pointer-events: none;">
         <span
@@ -401,17 +401,6 @@
         console.log("Profile User UID:", profileUserUid);
         // Let's assume username match for now since we have it.
         const profileUsername = "{{ user.username }}";
-
-        // Smart Navigation: Go back if history exists, else replace with home
-        function goBackOrHome() {
-            if (document.referrer && document.referrer.includes(window.location.host)) {
-                // If we came from inside the app, go back (pop stack)
-                window.history.back();
-            } else {
-                // If direct entry or external, replace with home
-                window.location.replace('/');
-            }
-        }
 
         let currentUserToken = null; // Will be set by auth listener
 

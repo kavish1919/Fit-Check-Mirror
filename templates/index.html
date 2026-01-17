@@ -1005,17 +1005,19 @@
             }
 
             // Fix for Back Button Navigation (BFCache):
-            // Forces a re-sync whenever the page is shown (persisted or nav).
-            window.addEventListener('pageshow', async (event) => {
-                // Try to get fresh token if user is initialized
-                const user = auth.currentUser;
-                if (user) {
-                    console.log("Page shown (user detected), re-syncing...");
-                    const token = await user.getIdToken();
-                    syncUserWithBackend(token);
-                } else if (authToken) {
-                    console.log("Page shown (token detected), re-syncing...");
-                    syncUserWithBackend(authToken);
+            // Forces a Full Reload if the page is restored from cache (Back Button).
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    console.log("Page restored from cache. Reloading...");
+                    window.location.reload();
+                    return;
+                }
+
+                // If not from cache but just navigated back (without full reload), check sync
+                // (Though usually 'persisted' covers the back button case on modern browsers)
+                if (authToken || (auth.currentUser)) {
+                    // Check auth state just in case
+                    if (auth.currentUser) syncUserWithBackend(authToken);
                 }
             });
 
