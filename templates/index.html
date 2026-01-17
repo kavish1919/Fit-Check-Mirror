@@ -1001,9 +1001,18 @@
                     }
                 } catch (e) {
                     console.error("Backend Sync Error:", e);
-                    // Don't stop loading on error, let retry happen or user stuck (better than broken link)
                 }
             }
+
+            // Fix for Back Button Navigation (BFCache):
+            // When user edits username and hits back, the page might be cached with OLD link.
+            // This forces a re-sync whenever the page is shown.
+            window.addEventListener('pageshow', (event) => {
+                if (authToken) {
+                    console.log("Page shown (back/nav), re-syncing profile...");
+                    syncUserWithBackend(authToken);
+                }
+            });
 
             window.submitUsername = async () => {
                 const input = document.getElementById('usernameInput');
