@@ -483,7 +483,11 @@ def save_score():
         
         update_user_stats(uid, int(score))
         
-        return jsonify({"status": "success", "saved_score": score})
+        # Return username for redirect
+        user_doc = db.collection('users').document(uid).get()
+        username = user_doc.to_dict().get('username') if user_doc.exists else None
+
+        return jsonify({"status": "success", "saved_score": score, "username": username})
     except Exception as e:
         print(f"Save Score Error: {e}")
         return jsonify({"error": str(e)}), 400

@@ -1059,6 +1059,7 @@
 
         let uploadedFile = null;
         let scannedImageDataUrl = null; // Store the scanned image for share card
+        let currentAudio = null; // Track audio to stop it on reset
 
         let currentFacingMode = 'environment'; // Default to rear camera
 
@@ -1152,7 +1153,6 @@
                     closeAlert();
                     secButtonAction();
                 };
-                secButton.onclick = null;
             }
 
             customAlert.style.display = 'flex';
@@ -1230,21 +1230,29 @@
         // Close dropdown when clicking outside (Removed)
 
         function scanOutfit() {
+            stopAudio(); // Stop any playing audio before new scan logic
             // Check screen size and use appropriate selector
             let selectedVibe, timerVal;
 
             if (window.innerWidth <= 600) {
-                // Mobile: open the popup
-                openVibePopup();
+                // Mobile: use popup values
+                selectedVibe = mobileVibeValue;
+                timerVal = mobileTimerValue;
+
+                if (!selectedVibe) {
+                    // Show Alert if empty
+                    showCustomAlert("TELL THE MIRROR WHAT YOU'RE WEARING SO WE CAN JUDGE YOU FAIRLY!");
+                    return;
+                }
             } else {
-                // Desktop: focus and open the dropdown
-                const vibeSelector = document.getElementById('vibeSelector');
-                if (vibeSelector) {
-                    vibeSelector.focus();
-                    // Use showPicker() to open the dropdown (modern browsers)
-                    if (vibeSelector.showPicker) {
-                        vibeSelector.showPicker();
-                    }
+                // Desktop: use dropdown selectors
+                selectedVibe = document.getElementById('vibeSelector').value;
+                timerVal = document.getElementById('timerSelector').value;
+
+                if (!selectedVibe) {
+                    // Show Alert if empty
+                    showCustomAlert("TELL THE MIRROR WHAT YOU'RE WEARING SO WE CAN JUDGE YOU FAIRLY!");
+                    return;
                 }
             }
 
@@ -1269,8 +1277,9 @@
             // Normal Camera Scan Flow
             scanBtn.disabled = true;
 
-            // Hide Camera Switch Button during scan
+            // Hide Camera Switch Button & Back Button during scan
             document.getElementById('cameraSwitchBtn').style.display = 'none';
+            document.getElementById('backToStartBtn').style.display = 'none';
 
             // Start Countdown
             let timeLeft = parseInt(timerVal);
@@ -1380,9 +1389,11 @@
                 video.srcObject = null;
             }
 
+            stopAudio(); // Ensure no overlapping audio
+
             if (data.audio) {
-                const audio = new Audio("data:audio/mp3;base64," + data.audio);
-                audio.play().catch(e => console.log("Audio play failed:", e));
+                currentAudio = new Audio("data:audio/mp3;base64," + data.audio);
+                currentAudio.play().catch(e => console.log("Audio play failed:", e));
             }
 
             // Logic for Save Button: ALWAYS VISIBLE now
@@ -1436,7 +1447,7 @@
                     saveBtn.innerHTML = 'SAVED! ✅';
                     saveBtn.style.background = '#ccc';
 
-                    showCustomAlert("STATS SAVED! KEEP GRINDING! 🔥", "SAVED ✅", "SEE STATS", "CLOSE", () => {
+                    showCustomAlert("STATS SAVED! KEEP GRINDING! 🔥", "SAVED ✅", "LATER", "SEE STATS", () => {
                         window.location.href = '/u/' + data.username;
                     });
                     // Disable button after save
@@ -1493,6 +1504,7 @@
         }
 
         function resetApp() {
+            stopAudio();
             resultOverlay.classList.remove('visible');
             scanBtn.disabled = false;
             videoContainer.classList.remove('scanning');
@@ -1517,6 +1529,14 @@
                 const tracks = video.srcObject.getTracks();
                 tracks.forEach(track => track.stop());
                 video.srcObject = null;
+            }
+        }
+
+        function stopAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
             }
         }
     </script>
