@@ -105,7 +105,7 @@
 
         .start-btn {
             background: rgba(255, 255, 255, 0.95);
-            border: 4px solid var(--ink-black);
+            border: 3px solid var(--ink-black);
             width: 180px;
             height: 180px;
             /* Square/Box shape */
@@ -552,8 +552,8 @@
                 /* Scale down to 80% for laptops */
             }
 
-            /* Ensure mobile popups are hidden on desktop */
-            .mobile-popup-overlay {
+            /* Ensure mobile popups are hidden on desktop (except info popup) */
+            .mobile-popup-overlay:not(#infoPopup) {
                 display: none !important;
             }
 
@@ -566,21 +566,21 @@
         /* Camera Switch Button */
         #cameraSwitchBtn {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             z-index: 20;
             background: rgba(255, 255, 255, 0.8);
-            border: 3px solid var(--ink-black);
-            width: 50px;
-            height: 50px;
+            border: 2px solid var(--ink-black);
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: none;
             /* Hidden by default */
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.2);
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
@@ -595,20 +595,82 @@
         }
     </style>
 
-    <!-- Make the login button feel bigger and more clickable -->
+    <!-- Push button feel for login button -->
     <style>
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border-left-color: #000;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        #loginBtn {
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
         #loginBtn:hover {
-            transform: scale(1.05);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
         }
 
         #loginBtn:active {
-            transform: scale(0.95);
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Push button feel for scan button */
+        #scanBtn {
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        #scanBtn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        #scanBtn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Push button feel for info button */
+        #infoBtnDesktop:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        #infoBtnDesktop:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
         }
     </style>
 
     <div class="user-controls" id="userControls"
-        style="position: fixed; top: 10px; right: 10px; z-index: 1000; font-family: 'Patrick Hand', cursive;">
-        <!-- Added width/height and cursor to ensure full clickability -->
+        style="position: fixed; top: 10px; right: 10px; z-index: 1000; font-family: 'Patrick Hand', cursive; display: flex; gap: 10px; align-items: center;">
+
+        <!-- Info Button (Desktop - next to login) -->
+        <button id="infoBtnDesktop" class="desktop-only"
+            onclick="document.getElementById('infoPopup').style.display='flex'"
+            style="width: 45px; height: 45px; border-radius: 50%; background: white; border: 3px solid black; box-shadow: 4px 4px 0px rgba(0,0,0,0.3); font-size: 1.6rem; font-weight: bold; font-style: italic; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.1s, box-shadow 0.1s; padding: 0; line-height: 1; font-family: Georgia, serif; text-transform: none;">
+            i
+        </button>
+
+        <!-- Login Button -->
         <button id="loginBtn" class="comic-btn" onclick="signInWithGoogle()"
             style="display: none; font-size: 1rem; padding: 10px 20px; cursor: pointer; min-width: 120px;">
             <span class="desktop-text">G SIGN IN</span>
@@ -617,10 +679,14 @@
         </button>
         <div id="userProfile"
             style="display: none; align-items: center; gap: 10px; background: white; padding: 5px 15px 5px 5px; border: 3px solid black; box-shadow: 4px 4px 0px black; cursor: pointer;"
-            onclick="document.getElementById('profileLink').click()">
+            <div id="userProfile"
+            style="display: none; align-items: center; gap: 10px; background: white; padding: 5px 15px 5px 5px; border: 3px solid black; box-shadow: 4px 4px 0px black; cursor: pointer;"
+            onclick="navigateToProfile()">
 
             <!-- Desktop View -->
             <div class="desktop-profile" style="display: flex; align-items: center; gap: 10px;">
+                <div id="profileLoadingSpinner" class="spinner"
+                    style="display: none; width: 20px; height: 20px; border-width: 2px;"></div>
                 <img id="userAvatar" src=""
                     style="width: 30px; height: 30px; border-radius: 50%; border: 2px solid black;">
                 <a id="profileLink" href="#" style="text-decoration: none; color: black; font-weight: bold;">MY
@@ -630,8 +696,11 @@
             <!-- Mobile View (Compact) -->
             <div class="mobile-profile-icon"
                 style="display: none; flex-direction: column; align-items: center; justify-content: center; line-height: 1;">
-                <span style="font-size: 1.5rem;">👤</span>
-                <span style="font-size: 0.6rem; font-weight: bold; text-transform: uppercase;">YOU</span>
+                <div id="mobileProfileSpinner" class="spinner"
+                    style="display: none; width: 24px; height: 24px; border-width: 3px; margin-bottom: 5px;"></div>
+                <span id="mobileProfileIcon" style="font-size: 1.5rem;">👤</span>
+                <span id="mobileProfileText"
+                    style="font-size: 0.6rem; font-weight: bold; text-transform: uppercase;">YOU</span>
             </div>
         </div>
     </div>
@@ -644,13 +713,13 @@
 
     <!-- Info Popup Modal -->
     <div id="infoPopup" class="mobile-popup-overlay"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
-        <div
-            style="background: white; border: 4px solid black; padding: 20px; max-width: 350px; max-height: 80vh; overflow-y: auto; box-shadow: 10px 10px 0px rgba(0,0,0,0.3); position: relative;">
+        style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center;">
+        <div id="infoPopupContent"
+            style="background: white; border: 4px solid black; padding: 20px; width: 90%; max-width: 350px; max-height: 80vh; overflow-y: auto; box-shadow: 10px 10px 0px rgba(0,0,0,0.3); position: relative; margin: auto;">
 
-            <!-- Close Button -->
+            <!-- Close Button (Fixed centering) -->
             <button onclick="document.getElementById('infoPopup').style.display='none'"
-                style="position: absolute; top: 10px; right: 10px; background: #FF3B30; color: white; border: 2px solid black; width: 30px; height: 30px; border-radius: 50%; font-size: 1rem; cursor: pointer;">✕</button>
+                style="position: absolute; top: 8px; right: 8px; background: #FF3B30; color: white; border: 2px solid black; width: 32px; height: 32px; border-radius: 50%; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; line-height: 1;">✕</button>
 
             <h2 style="text-align: center; margin-top: 0; font-size: 1.8rem; text-transform: uppercase;">✨ FIT CHECK
                 MIRROR ✨</h2>
@@ -674,6 +743,11 @@
                 </p>
             </div>
 
+            <p style="text-align: center; font-size: 0.9rem; margin-top: 15px; color: #666;">
+                <strong>📧 CONTACT:</strong> <a href="mailto:kavishbishnoi19@gmail.com"
+                    style="color: #007AFF;">kavishbishnoi19@gmail.com</a>
+            </p>
+
             <button onclick="document.getElementById('infoPopup').style.display='none'"
                 style="width: 100%; margin-top: 15px; background: #007AFF; color: white; padding: 12px; font-size: 1.2rem;">
                 LET'S GO! 🚀
@@ -688,6 +762,12 @@
             <div class="video-wrapper" id="camera-container">
                 <!-- Camera Switch Button (Mobile Only) -->
                 <button id="cameraSwitchBtn" onclick="switchCamera()">🔄</button>
+
+                <!-- Back Button (Go back to start screen) -->
+                <button id="backToStartBtn" onclick="resetApp()"
+                    style="position: absolute; top: 15px; left: 15px; z-index: 20; background: rgba(255, 255, 255, 0.8); border: 2px solid black; width: 38px; height: 38px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.2);">
+                    ↩️
+                </button>
 
                 <!-- Start Screen Overlay -->
                 <div id="startScreen" class="start-screen">
@@ -859,8 +939,8 @@
             window.signInWithGoogle = () => {
                 auth.signInWithPopup(provider).catch(error => {
                     console.error("Login Failed:", error);
-                    if (error.code === 'auth/popup-closed-by-user') {
-                        // User closed the popup, no need to show an alarming alert
+                    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                        // User closed the popup OR clicked twice/conflicted. No need to alert.
                         return;
                     }
                     showCustomAlert("LOGIN FAILED: " + error.message, "LOGIN ERROR 🛑", "TRY AGAIN");
@@ -874,10 +954,11 @@
                     currentUser = user;
                     authToken = await user.getIdToken();
 
-                    // Update UI
+                    // Update UI (Show Loading State Initially)
                     document.getElementById('loginBtn').style.display = 'none';
                     document.getElementById('userProfile').style.display = 'flex';
                     document.getElementById('userAvatar').src = user.photoURL;
+                    setProfileLoading(true); // START LOADING SPINNER
 
                     // Sync with Backend
                     syncUserWithBackend(authToken);
@@ -890,13 +971,24 @@
                 }
             });
 
-            async function syncUserWithBackend(token) {
+            async function syncUserWithBackend(token, retryCount = 0) {
                 try {
                     const response = await fetch('/api/login', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ idToken: token })
                     });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.warn("Backend Sync Failed:", errorData);
+
+                        // CLOCK SKEW FIX: Retry after a delay if error is likely 401/400
+                        if ((retryCount || 0) < 3) {
+                            console.log(`Retrying sync in 2s (Attempt ${(retryCount || 0) + 1})...`);
+                            setTimeout(() => syncUserWithBackend(token, (retryCount || 0) + 1), 2000);
+                        }
+                        return;
+                    }
                     const data = await response.json();
 
                     if (data.status === 'new_user' || !data.username) {
@@ -905,9 +997,11 @@
                     } else {
                         // Update Profile Link
                         document.getElementById('profileLink').href = '/u/' + data.username;
+                        setProfileLoading(false); // STOP LOADING SPINNER (Ready!)
                     }
                 } catch (e) {
                     console.error("Backend Sync Error:", e);
+                    // Don't stop loading on error, let retry happen or user stuck (better than broken link)
                 }
             }
 
@@ -933,6 +1027,7 @@
                     if (data.status === 'success') {
                         document.getElementById('usernameModal').style.display = 'none';
                         document.getElementById('profileLink').href = '/u/' + username;
+                        setProfileLoading(false); // STOP SPINNER (New User Ready!)
                         showCustomAlert("WELCOME TO THE CLUB, " + username.toUpperCase() + "! 🎉", "OFFICIAL DRIP ✅", "LET'S GO");
                     } else {
                         errorDiv.textContent = data.error || "Username taken";
@@ -974,10 +1069,11 @@
             previewImage.style.display = 'none';
             uploadedFile = null; // Clear any old upload
 
-            // Show switch button on mobile
+            // Show switch button on mobile, back button on all devices
             if (window.innerWidth <= 600) {
                 document.getElementById('cameraSwitchBtn').style.display = 'flex';
             }
+            document.getElementById('backToStartBtn').style.display = 'flex';
 
             try {
                 // improved constraints for mobile rear camera
@@ -1026,6 +1122,9 @@
                     video.style.display = 'none'; // Hide video
                     previewImage.style.display = 'block'; // Show image
 
+                    // Show back button
+                    document.getElementById('backToStartBtn').style.display = 'flex';
+
                     // Do NOT auto-scan. User must click "SCAN OUTFIT" manually.
                 }
                 reader.readAsDataURL(uploadedFile);
@@ -1053,8 +1152,6 @@
                     closeAlert();
                     secButtonAction();
                 };
-            } else {
-                secButton.style.display = 'none';
                 secButton.onclick = null;
             }
 
@@ -1081,6 +1178,16 @@
                         }
                     }
                 }
+            }
+        }
+
+        function navigateToProfile() {
+            const link = document.getElementById('profileLink').getAttribute('href');
+            if (link && link !== '#' && link !== '') {
+                window.location.href = link;
+            } else {
+                console.log("Profile URL not ready yet...");
+                // Optional: show small toast or just wait
             }
         }
 
@@ -1127,26 +1234,20 @@
             let selectedVibe, timerVal;
 
             if (window.innerWidth <= 600) {
-                // Mobile: use popup values
-                selectedVibe = mobileVibeValue;
-                timerVal = mobileTimerValue;
-
-                if (!selectedVibe) {
-                    // Show Alert if empty
-                    showCustomAlert("TELL THE MIRROR WHAT YOU'RE WEARING SO WE CAN JUDGE YOU FAIRLY!");
-                    return;
-                }
+                // Mobile: open the popup
+                openVibePopup();
             } else {
-                // Desktop: use dropdown selectors
-                selectedVibe = document.getElementById('vibeSelector').value;
-                timerVal = document.getElementById('timerSelector').value;
-
-                if (!selectedVibe) {
-                    // Show Alert if empty
-                    showCustomAlert("TELL THE MIRROR WHAT YOU'RE WEARING SO WE CAN JUDGE YOU FAIRLY!");
-                    return;
+                // Desktop: focus and open the dropdown
+                const vibeSelector = document.getElementById('vibeSelector');
+                if (vibeSelector) {
+                    vibeSelector.focus();
+                    // Use showPicker() to open the dropdown (modern browsers)
+                    if (vibeSelector.showPicker) {
+                        vibeSelector.showPicker();
+                    }
                 }
             }
+
 
             // Check if camera is active or file is uploaded
             const isCameraActive = video.srcObject && video.srcObject.active;
@@ -1335,28 +1436,41 @@
                     saveBtn.innerHTML = 'SAVED! ✅';
                     saveBtn.style.background = '#ccc';
 
-                    // Get username from profile link for redirect
-                    const profileLink = document.getElementById('profileLink');
-                    const profileUrl = profileLink ? profileLink.getAttribute('href') : '/';
-
-                    showCustomAlert(
-                        "SCORE SAVED! CHECK YOUR STATS? 📈",
-                        "NICE! 🎉",
-                        "LATER",
-                        "SEE STATS 📊",
-                        () => { window.location.href = profileUrl; }
-                    );
+                    showCustomAlert("STATS SAVED! KEEP GRINDING! 🔥", "SAVED ✅", "SEE STATS", "CLOSE", () => {
+                        window.location.href = '/u/' + data.username;
+                    });
+                    // Disable button after save
+                    saveBtn.innerHTML = 'SAVED ✅';
                 } else {
-                    saveBtn.innerHTML = 'RETRY ❌';
+                    showCustomAlert("ERROR SAVING: " + data.message);
                     saveBtn.disabled = false;
-                    saveBtn.style.background = 'red';
-                    alert("Save Error: " + data.error);
+                    saveBtn.innerHTML = 'SAVE DRIP 💾';
                 }
             } catch (e) {
                 console.error(e);
-                saveBtn.innerHTML = 'RETRY ❌';
+                showCustomAlert("NETWORK ERROR SAVING SCORE");
                 saveBtn.disabled = false;
-                alert("Network Error: " + e.message);
+                saveBtn.innerHTML = 'SAVE DRIP 💾';
+            }
+        }
+
+        // --- NEW: Profile Spinner Logic ---
+        function setProfileLoading(isLoading) {
+            const desktopSpinner = document.getElementById('profileLoadingSpinner');
+            const mobileSpinner = document.getElementById('mobileProfileSpinner');
+            const desktopAvatar = document.getElementById('userAvatar');
+            const mobileIcon = document.getElementById('mobileProfileIcon');
+
+            // For Desktop
+            if (desktopSpinner && desktopAvatar) {
+                desktopSpinner.style.display = isLoading ? 'block' : 'none';
+                desktopAvatar.style.display = isLoading ? 'none' : 'block';
+            }
+
+            // For Mobile
+            if (mobileSpinner && mobileIcon) {
+                mobileSpinner.style.display = isLoading ? 'block' : 'none';
+                mobileIcon.style.display = isLoading ? 'none' : 'block';
             }
         }
 
@@ -1395,6 +1509,7 @@
             video.style.display = 'none'; // Hide video
             previewImage.style.display = 'none'; // Hide preview
             document.getElementById('cameraSwitchBtn').style.display = 'none'; // Hide switch button
+            document.getElementById('backToStartBtn').style.display = 'none'; // Hide back button
             uploadedFile = null;
 
             // Optional: Stop Camera Stream to save resources

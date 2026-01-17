@@ -63,22 +63,22 @@
             font-family: 'Patrick Hand', cursive;
             font-size: 1.1rem;
             font-weight: bold;
-            border: 3px solid black;
+            border: 2px solid black;
             padding: 8px 16px;
             cursor: pointer;
-            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s, box-shadow 0.2s;
             text-transform: uppercase;
         }
 
         button:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.3);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.3);
         }
 
         button:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.3);
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.3);
         }
 
         @keyframes slideUpCard {
@@ -95,11 +95,11 @@
 
         .profile-card {
             background: white;
-            border: 4px solid black;
+            border: 2px solid black;
             padding: 20px;
             width: 100%;
             max-width: 500px;
-            box-shadow: 10px 10px 0px black;
+            box-shadow: 6px 6px 0px black;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -125,7 +125,7 @@
             width: 120px;
             height: 120px;
             border-radius: 50%;
-            border: 4px solid black;
+            border: 2px solid black;
             object-fit: cover;
             background-color: #ddd;
         }
@@ -154,16 +154,16 @@
 
         .stat-box {
             background: var(--yellow);
-            border: 3px solid black;
+            border: 2px solid black;
             padding: 15px;
             text-align: center;
-            box-shadow: 4px 4px 0px black;
+            box-shadow: 3px 3px 0px black;
             transition: transform 0.1s;
         }
 
         .stat-box:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px black;
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px black;
         }
 
         .stat-value {
@@ -193,12 +193,12 @@
         .home-btn {
             background: var(--blue);
             color: white;
-            border: 3px solid black;
+            border: 2px solid black;
             padding: 15px 30px;
             font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
-            box-shadow: 5px 5px 0px black;
+            box-shadow: 4px 4px 0px black;
             text-decoration: none;
             display: inline-block;
             margin-top: 40px;
@@ -207,7 +207,7 @@
 
         .home-btn:active {
             transform: translate(2px, 2px);
-            box-shadow: 3px 3px 0px black;
+            box-shadow: 2px 2px 0px black;
         }
 
         /* Responsive Fix for Short Screens */
@@ -314,7 +314,9 @@
 
             <label style="font-weight: bold;">USERNAME</label>
             <input type="text" id="editUsername" value="{{ user.username }}"
-                style="width: 100%; padding: 10px; border: 2px solid black; margin-bottom: 20px; font-family: inherit; font-size: 1.1rem; text-transform: lowercase;">
+                style="width: 100%; padding: 10px; border: 2px solid black; margin-bottom: 5px; font-family: inherit; font-size: 1.1rem; text-transform: lowercase;">
+            <div id="editErrorMsg"
+                style="color: red; font-size: 0.9rem; margin-bottom: 15px; display: none; font-weight: bold;"></div>
 
             <div style="display: flex; gap: 10px; justify-content: space-between;">
                 <button onclick="closeEditModal()"
@@ -336,13 +338,13 @@
         <div class="card-controls">
             <!-- Edit Button (Visible if logged in user matches) -->
             <button id="editBtn" onclick="openEditModal()"
-                style="display: none; background: yellow; border: 3px solid black; padding: 5px 10px; font-weight: bold; cursor: pointer; text-align: left;">
+                style="display: none; background: yellow; border: 2px solid black; padding: 4px 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-align: left;">
                 EDIT ✏️
             </button>
 
             <!-- Share Button (Always Visible) -->
             <button id="shareBtn" onclick="shareProfile()"
-                style="background: #007AFF; color: white; border: 3px solid black; padding: 5px 10px; font-weight: bold; cursor: pointer; text-align: left; font-family: 'Patrick Hand', cursive;">
+                style="background: #007AFF; color: white; border: 2px solid black; padding: 4px 8px; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-align: left; font-family: 'Patrick Hand', cursive;">
                 SHARE 🔗
             </button>
         </div>
@@ -378,7 +380,15 @@
         </div>
     </div>
 
-    <a href="/" class="home-btn">CHECK YOUR OWN FIT 🪞</a>
+    <a href="javascript:void(0)" onclick="goBackOrHome()" class="home-btn">CHECK YOUR OWN FIT 🪞</a>
+
+    <div style="position: absolute; bottom: 20px; width: 100%; text-align: center; pointer-events: none;">
+        <span
+            style="display: inline-block; background: rgba(0, 0, 0, 0.85); border: 2px solid white; border-radius: 50px; padding: 10px 20px; color: white; font-weight: bold; font-size: 0.85rem; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            📧 CONTACT: <a href="mailto:kavishbishnoi19@gmail.com"
+                style="color: #FFD700; text-decoration: none; margin-left: 5px;">kavishbishnoi19@gmail.com</a>
+        </span>
+    </div>
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -388,8 +398,22 @@
         const profileUserUid = "{{ user.uid if 'uid' in user else '' }}"; // We need UID to verify ownership
         // Note: app.py currently sends user_doc.to_dict(), which might NOT include 'uid' if it's the document ID. 
         // We might need to rely on username matching or fix app.py. 
+        console.log("Profile User UID:", profileUserUid);
         // Let's assume username match for now since we have it.
         const profileUsername = "{{ user.username }}";
+
+        // Smart Navigation: Go back if history exists, else replace with home
+        function goBackOrHome() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                // If we came from inside the app, go back (pop stack)
+                window.history.back();
+            } else {
+                // If direct entry or external, replace with home
+                window.location.replace('/');
+            }
+        }
+
+        let currentUserToken = null; // Will be set by auth listener
 
         // Firebase Config passed from Flask
         const firebaseConfig = {
@@ -401,7 +425,7 @@
             appId: "{{ firebase_config.appId }}"
         };
 
-        let currentUserToken = null;
+
 
         try {
             firebase.initializeApp(firebaseConfig);
@@ -433,7 +457,7 @@
             });
 
             function signOut() {
-                auth.signOut().then(() => { window.location.href = '/'; });
+                auth.signOut().then(() => { window.location.replace('/'); });
             }
 
             // --- EDITING LOGIC ---
@@ -458,6 +482,9 @@
             };
 
             window.saveProfile = async () => {
+                const errorMsg = document.getElementById('editErrorMsg');
+                errorMsg.style.display = 'none';
+
                 if (!currentUserToken) return alert("Not logged in!");
 
                 const newName = document.getElementById('editDisplayName').value;
@@ -478,14 +505,19 @@
                     if (data.status === 'success') {
                         // Reload to 'u/newUsername' if username changed, else reload.
                         if (newUsername !== "{{ user.username }}") {
-                            window.location.href = '/u/' + newUsername;
+                            window.location.replace('/u/' + newUsername);
                         } else {
                             window.location.reload();
                         }
                     } else {
-                        alert("Error: " + data.error);
+                        // Show error inline
+                        errorMsg.textContent = "Error: " + data.error;
+                        errorMsg.style.display = 'block';
                     }
-                } catch (e) { alert("Network Error"); }
+                } catch (e) {
+                    errorMsg.textContent = "Network Error";
+                    errorMsg.style.display = 'block';
+                }
             };
 
             window.deleteAccount = () => {
@@ -509,7 +541,7 @@
 
                         // Redirect after 2 seconds
                         setTimeout(() => {
-                            window.location.href = '/';
+                            window.location.replace('/');
                         }, 2000);
                     } else {
                         alert("Failed to delete.");

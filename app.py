@@ -153,16 +153,35 @@ def api_login():
             return jsonify({"status": "new_user", "uid": uid})
         else:
             # Update basics (in case photo changed)
+            # Update basics
             user_ref.update({
                 'displayName': name, 
                 'photoURL': picture,
                 'lastLogin': firestore.SERVER_TIMESTAMP
             })
             existing_data = user_doc.to_dict()
+            username = existing_data.get('username')
+
+            # SELF-HEALING: If username is missing in profile, check if they own one in 'usernames'
+            if not username:
+                try:
+                    # Query usernames collection where uid == current uid
+                    query = db.collection('usernames').where('uid', '==', uid).limit(1).stream()
+                    for doc in query:
+                        found_username = doc.id
+                        print(f"🔧 Self-healing: Found orphaned username '{found_username}' for uid {uid}")
+                        
+                        # Fix the user profile
+                        user_ref.update({'username': found_username})
+                        username = found_username
+                        break
+                except Exception as e:
+                    print(f"Self-heal error: {e}")
+
             return jsonify({
                 "status": "existing_user", 
                 "uid": uid,
-                "username": existing_data.get('username')
+                "username": username
             })
             
     except Exception as e:
@@ -194,10 +213,16 @@ def set_username():
         decoded_token = auth.verify_id_token(id_token)
         uid = decoded_token['uid']
         
-        # Double check availability
+        # Double check availability (or ownership)
         username_ref = db.collection('usernames').document(desired_username)
-        if username_ref.get().exists:
-            return jsonify({"error": "Username taken"}), 400
+        username_doc = username_ref.get()
+        
+        if username_doc.exists:
+            # Check if it belongs to THIS user (reclaiming/fixing inconsistency)
+            existing_uid = username_doc.to_dict().get('uid')
+            if existing_uid != uid:
+                return jsonify({"error": "Username taken"}), 400
+            # If uid matches, we proceed to update (re-link)
             
         # Transaction to claim username
         # (Simplified for now without full ACID transaction for brevity, 
