@@ -504,8 +504,9 @@
 
                     if (data.status === 'success') {
                         // Reload to 'u/newUsername' if username changed, else reload.
-                        if (newUsername !== "{{ user.username }}") {
-                            window.location.replace('/u/' + newUsername);
+                        // Reload to 'u/newUsername' if username changed, using BACKEND return value
+                        if (data.username && data.username !== "{{ user.username }}") {
+                            window.location.replace('/u/' + data.username);
                         } else {
                             window.location.reload();
                         }

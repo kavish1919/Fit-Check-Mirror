@@ -282,7 +282,10 @@ def update_profile():
             # Just updating name
             user_ref.update(updates)
 
-        return jsonify({"status": "success"})
+        return jsonify({
+            "status": "success", 
+            "username": updates.get('username', old_username)
+        })
     except Exception as e:
         print(f"Update Error: {e}")
         return jsonify({"error": str(e)}), 400
