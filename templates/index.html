@@ -1114,8 +1114,13 @@
                 video.srcObject = stream;
 
                 // Handle Mirroring:
-                // User requested UN-MIRRORED for both cameras.
-                video.style.transform = 'scaleX(1)';
+                // Front Camera ('user') = Mirrored (scaleX(-1)) - like a real mirror
+                // Back Camera ('environment') = Normal (scaleX(1))
+                if (currentFacingMode === 'user') {
+                    video.style.transform = 'scaleX(-1)';
+                } else {
+                    video.style.transform = 'scaleX(1)';
+                }
 
             } catch (err) {
                 console.error("Camera Error:", err);
